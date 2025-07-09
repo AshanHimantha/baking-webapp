@@ -19,6 +19,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Geist', 'system-ui', 'sans-serif'],
+				'geist': ['Geist', 'system-ui', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -65,21 +69,27 @@ export default {
 				},
 				// Banking-specific colors
 				banking: {
-					primary: '220 95% 50%',
-					primaryDark: '220 95% 35%',
-					secondary: '220 20% 97%',
-					accent: '220 60% 60%',
-					success: '142 76% 36%',
-					warning: '38 92% 50%',
-					danger: '0 84% 60%',
-					income: '142 76% 36%',
-					expense: '0 84% 60%',
+					primary: 'hsl(220 95% 50%)',
+					primaryDark: 'hsl(220 95% 35%)',
+					secondary: 'hsl(220 20% 97%)',
+					accent: 'hsl(220 60% 60%)',
+					success: 'hsl(142 76% 36%)',
+					warning: 'hsl(38 92% 50%)',
+					danger: 'hsl(0 84% 60%)',
+					income: 'hsl(142 76% 36%)',
+					expense: 'hsl(0 84% 60%)',
 				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
 			},
 			keyframes: {
 				'accordion-down': {
