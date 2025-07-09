@@ -1,4 +1,3 @@
-
 import CustomerLayout from "@/components/customer/CustomerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import {
   Plus, 
   Eye, 
   EyeOff, 
-  Freeze, 
+  Snowflake,
   Settings,
   Wallet,
   Shield,
@@ -254,7 +253,7 @@ const CustomerCards = () => {
 
           <Card className="shadow-banking text-center">
             <CardContent className="pt-6">
-              <Freeze className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+              <Snowflake className="w-8 h-8 text-orange-600 mx-auto mb-2" />
               <h3 className="font-semibold mb-1">Instant Control</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Freeze/unfreeze anytime
