@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -126,7 +125,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       <div className="lg:ml-64">
         {/* Top navigation */}
         <div className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between h-16 px-6">
+          <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
