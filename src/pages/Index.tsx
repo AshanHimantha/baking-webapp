@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-geist">
       {/* Header */}
       <header className="relative z-50 bg-white/95 backdrop-blur-sm border-b border-orange-100">
         <div className="container mx-auto px-4 lg:px-6">
@@ -161,7 +161,7 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100">
+            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-14 h-14 bg-gradient-orange rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-orange-glow transition-all">
                   <Users className="w-7 h-7 text-white" />
@@ -173,7 +173,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100">
+            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-14 h-14 bg-gradient-orange rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-orange-glow transition-all">
                   <Shield className="w-7 h-7 text-white" />
@@ -185,7 +185,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100">
+            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-14 h-14 bg-gradient-orange rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-orange-glow transition-all">
                   <TrendingUp className="w-7 h-7 text-white" />
@@ -197,7 +197,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100">
+            <Card className="group hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-2 border-orange-100 bg-white">
               <CardContent className="p-6 text-center">
                 <div className="w-14 h-14 bg-gradient-orange rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-orange-glow transition-all">
                   <Globe className="w-7 h-7 text-white" />
