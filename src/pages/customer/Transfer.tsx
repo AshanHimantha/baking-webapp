@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowRight, 
   Users, 
@@ -13,7 +15,12 @@ import {
   CheckCircle,
   DollarSign,
   Send,
-  User
+  User,
+  Calendar,
+  RefreshCw,
+  Pause,
+  Play,
+  Trash2
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,6 +31,9 @@ const CustomerTransfer = () => {
   const [message, setMessage] = useState("");
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState("weekly");
+  const [startDate, setStartDate] = useState("");
 
   const quickContacts = [
     { id: '1', name: 'Sarah Wilson', email: 'sarah@example.com', avatar: '/placeholder.svg', initials: 'SW' },
@@ -32,14 +42,44 @@ const CustomerTransfer = () => {
     { id: '4', name: 'Alex Chen', email: 'alex@example.com', avatar: '/placeholder.svg', initials: 'AC' },
   ];
 
+  const recurringTransfers = [
+    { 
+      id: '1', 
+      recipient: 'Sarah Wilson', 
+      email: 'sarah@example.com',
+      amount: 500, 
+      frequency: 'Monthly', 
+      nextTransfer: '2024-01-15',
+      status: 'active'
+    },
+    { 
+      id: '2', 
+      recipient: 'Mike Johnson', 
+      email: 'mike@example.com',
+      amount: 200, 
+      frequency: 'Weekly', 
+      nextTransfer: '2024-01-12',
+      status: 'paused'
+    },
+  ];
+
   const handleTransfer = () => {
     if (!amount || !recipient) {
       toast.error("Please fill in all required fields");
       return;
     }
 
+    if (isRecurring && !startDate) {
+      toast.error("Please select a start date for recurring transfer");
+      return;
+    }
+
     setShowSuccess(true);
-    toast.success("Transfer completed successfully!");
+    if (isRecurring) {
+      toast.success(`Recurring transfer scheduled successfully! Will start on ${startDate}`);
+    } else {
+      toast.success("Transfer completed successfully!");
+    }
     
     // Reset form after 3 seconds
     setTimeout(() => {
@@ -48,12 +88,36 @@ const CustomerTransfer = () => {
       setRecipient("");
       setMessage("");
       setSelectedContact(null);
+      setIsRecurring(false);
+      setFrequency("weekly");
+      setStartDate("");
     }, 3000);
   };
 
   const selectContact = (contact: typeof quickContacts[0]) => {
     setSelectedContact(contact.id);
     setRecipient(contact.email);
+  };
+
+  const toggleRecurringTransfer = (id: string, action: 'pause' | 'resume' | 'delete') => {
+    if (action === 'delete') {
+      toast.success("Recurring transfer cancelled");
+    } else if (action === 'pause') {
+      toast.success("Recurring transfer paused");
+    } else {
+      toast.success("Recurring transfer resumed");
+    }
+  };
+
+  const getFrequencyText = (freq: string) => {
+    switch (freq) {
+      case 'daily': return 'Daily';
+      case 'weekly': return 'Weekly';
+      case 'biweekly': return 'Bi-weekly';
+      case 'monthly': return 'Monthly';
+      case 'quarterly': return 'Quarterly';
+      default: return 'Weekly';
+    }
   };
 
   if (showSuccess) {
@@ -66,20 +130,27 @@ const CustomerTransfer = () => {
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Transfer Successful!
+                {isRecurring ? 'Recurring Transfer Set Up!' : 'Transfer Successful!'}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                ${amount} has been sent to {recipient}
+                {isRecurring 
+                  ? `$${amount} will be sent ${getFrequencyText(frequency).toLowerCase()} to ${recipient} starting ${startDate}`
+                  : `$${amount} has been sent to ${recipient}`
+                }
               </p>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Transaction ID</p>
-                <p className="font-mono text-sm text-gray-900 dark:text-white">TXN-{Date.now()}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {isRecurring ? 'Schedule ID' : 'Transaction ID'}
+                </p>
+                <p className="font-mono text-sm text-gray-900 dark:text-white">
+                  {isRecurring ? 'SCH' : 'TXN'}-{Date.now()}
+                </p>
               </div>
               <Button 
                 onClick={() => setShowSuccess(false)}
                 className="w-full"
               >
-                Make Another Transfer
+                {isRecurring ? 'Set Up Another' : 'Make Another Transfer'}
               </Button>
             </CardContent>
           </Card>
@@ -139,9 +210,21 @@ const CustomerTransfer = () => {
             {/* Transfer Details */}
             <Card className="shadow-banking">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Send className="w-5 h-5 mr-2" />
-                  Transfer Details
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Send className="w-5 h-5 mr-2" />
+                    Transfer Details
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+                      Recurring
+                    </Label>
+                    <Switch
+                      id="recurring-toggle"
+                      checked={isRecurring}
+                      onCheckedChange={setIsRecurring}
+                    />
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -170,6 +253,38 @@ const CustomerTransfer = () => {
                   </div>
                 </div>
 
+                {isRecurring && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="frequency">Frequency</Label>
+                        <Select value={frequency} onValueChange={setFrequency}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="startDate">Start Date</Label>
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="message">Message (Optional)</Label>
                   <Textarea
@@ -181,22 +296,23 @@ const CustomerTransfer = () => {
                   />
                 </div>
 
-                {/* Quick Amount Buttons */}
-                <div className="space-y-2">
-                  <Label>Quick Amount</Label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {['10', '25', '50', '100'].map((quickAmount) => (
-                      <Button
-                        key={quickAmount}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setAmount(quickAmount)}
-                      >
-                        ${quickAmount}
-                      </Button>
-                    ))}
+                {!isRecurring && (
+                  <div className="space-y-2">
+                    <Label>Quick Amount</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['10', '25', '50', '100'].map((quickAmount) => (
+                        <Button
+                          key={quickAmount}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAmount(quickAmount)}
+                        >
+                          ${quickAmount}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -213,6 +329,12 @@ const CustomerTransfer = () => {
                     <span className="text-gray-600 dark:text-gray-400">Amount</span>
                     <span className="font-semibold">${amount || '0.00'}</span>
                   </div>
+                  {isRecurring && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Frequency</span>
+                      <span className="font-semibold">{getFrequencyText(frequency)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Fee</span>
                     <span className="font-semibold text-green-600">Free</span>
@@ -236,15 +358,18 @@ const CustomerTransfer = () => {
 
                 <Button 
                   onClick={handleTransfer}
-                  disabled={!amount || !recipient}
+                  disabled={!amount || !recipient || (isRecurring && !startDate)}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Money
+                  {isRecurring ? <Calendar className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                  {isRecurring ? 'Schedule Transfer' : 'Send Money'}
                 </Button>
 
                 <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  Transfer will be processed instantly. You can cancel within 30 seconds.
+                  {isRecurring 
+                    ? 'Recurring transfer will start on the selected date'
+                    : 'Transfer will be processed instantly. You can cancel within 30 seconds.'
+                  }
                 </p>
               </CardContent>
             </Card>
@@ -266,6 +391,64 @@ const CustomerTransfer = () => {
             </Card>
           </div>
         </div>
+
+        {/* Recurring Transfers */}
+        {recurringTransfers.length > 0 && (
+          <Card className="shadow-banking">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <RefreshCw className="w-5 h-5 mr-2" />
+                Active Recurring Transfers
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recurringTransfers.map((transfer) => (
+                  <div key={transfer.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="w-12 h-12">
+                        <AvatarFallback className="bg-blue-600 text-white">
+                          {transfer.recipient.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{transfer.recipient}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{transfer.email}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          ${transfer.amount} • {transfer.frequency} • Next: {transfer.nextTransfer}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        transfer.status === 'active' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                      }`}>
+                        {transfer.status}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleRecurringTransfer(transfer.id, transfer.status === 'active' ? 'pause' : 'resume')}
+                      >
+                        {transfer.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleRecurringTransfer(transfer.id, 'delete')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recent Transfers */}
         <Card className="shadow-banking">
