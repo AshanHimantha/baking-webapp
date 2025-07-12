@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import Index from "./pages/Index";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 import CustomerDashboard from "./pages/customer/Dashboard";
 import CustomerTransactions from "./pages/customer/Transactions";
 import CustomerTransfer from "./pages/customer/Transfer";
@@ -30,6 +32,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
             
             {/* Customer Banking Routes */}
             <Route path="/customer/dashboard" element={<CustomerDashboard />} />
