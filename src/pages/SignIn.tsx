@@ -1,69 +1,90 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Building2, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { useRedirectIfAuthenticated } from "@/hooks/useAuthGuard";
+import { toast } from "sonner";
 
 const SignIn = () => {
+  const navigate = useNavigate();
+  const { login, verifyLogin, isLoading, setLoading, getUserRole } = useAuthStore();
+  
+  // Redirect if already authenticated
+  useRedirectIfAuthenticated();
+  
   const [step, setStep] = useState<'credentials' | 'verification'>('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Use form data instead of hardcoded credentials
-    const credentials = {
-      username: email,
-      password: password
-    };
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
+      await login({
+        username: email,
+        password: password
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Login successful:', data);
+      
       setStep('verification');
+      toast.success('Login successful! Please check your email for verification code.');
     } catch (error) {
       console.error('Error during login:', error);
-      // You might want to show an error message to the user here
-    } finally {
-      setIsLoading(false);
+      toast.error('Login failed. Please check your credentials and try again.');
     }
   };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    // Redirect to dashboard would happen here
-    console.log('Sign in successful');
+    try {
+      await verifyLogin({
+        username: email,
+        code: verificationCode
+      });
+      
+      // Check user role and navigate accordingly
+      const userRole = getUserRole();
+      
+      if (userRole === 'NONE') {
+        toast.success('Account needs verification. Redirecting to KYC...');
+        navigate('/kyc');
+      } else if (userRole === 'CUSTOMER') {
+        toast.success('Welcome back! Redirecting to dashboard...');
+        navigate('/customer/dashboard');
+      } else if (userRole === 'EMPLOYEE') {
+        toast.success('Employee login successful! Redirecting to admin dashboard...');
+        navigate('/admin/dashboard');
+      } else if (userRole === 'ADMIN') {
+        toast.success('Admin login successful! Redirecting to admin dashboard...');
+        navigate('/admin/dashboard');
+      } else {
+        toast.error('Unknown user role. Please contact support.');
+      }
+    } catch (error) {
+      console.error('Error during verification:', error);
+      toast.error('Verification failed. Please check your code and try again.');
+    }
   };
 
-  const handleResendCode = () => {
-    console.log('Resending verification code...');
+  const handleResendCode = async () => {
+    try {
+      // Resend verification code by calling login again
+      await login({
+        username: email,
+        password: password
+      });
+      toast.success('Verification code resent! Please check your email.');
+    } catch (error) {
+      console.error('Error resending code:', error);
+      toast.error('Failed to resend code. Please try again.');
+    }
   };
 
   return (
@@ -81,7 +102,7 @@ const SignIn = () => {
             </CardTitle>
             <CardDescription className="text-gray-600">
               {step === 'credentials' 
-                ? 'Sign in to your MyBank account' 
+                ? 'Sign in to your Orbin account' 
                 : `We've sent a 6-digit code to ${email}`
               }
             </CardDescription>
@@ -158,15 +179,20 @@ const SignIn = () => {
                 </Button>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900">
+              <div className="space-y-2 w-full text-center">
+                <label className="text-sm font-medium text-center text-gray-900">
                   Verification code
                 </label>
                 <div className="flex justify-center">
                   <InputOTP
                     maxLength={6}
                     value={verificationCode}
-                    onChange={setVerificationCode}
+                    onChange={(value) => {
+                      console.log('OTP value changed:', value);
+                      setVerificationCode(value);
+                    }}
+                    autoFocus
+                    pattern="^[A-Z0-9]+$"
                   >
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
@@ -178,6 +204,9 @@ const SignIn = () => {
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
+                <p className="text-xs text-gray-500 text-center">
+                  Current code: {verificationCode || 'None'} (Length: {verificationCode.length})
+                </p>
               </div>
 
               <Button

@@ -1,19 +1,23 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Building2, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<'details' | 'verification'>('details');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
+    phoneNumber: '',
+    username: '',
     password: '',
     confirmPassword: ''
   });
@@ -26,37 +30,85 @@ const SignUp = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      console.error('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
     
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    setStep('verification');
+    try {
+      const requestBody = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        username: formData.username,
+        password: formData.password
+      };
+      
+      const response = await apiClient.post('/api/auth/register', requestBody);
+      
+      console.log('Registration successful:', response.data);
+      toast.success('Account created successfully! Please check your email for verification.');
+      setIsLoading(false);
+      setStep('verification');
+      
+    } catch (error: any) {
+      console.error('Registration failed:', error);
+      
+      // Extract error message from backend response
+      let errorMessage = 'Registration failed. Please try again.';
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      setIsLoading(false);
+    }
   };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    // Redirect to dashboard would happen here
-    console.log('Sign up successful');
+    try {
+      // Here you would typically call an email verification API
+      // For now, we'll simulate the verification
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success('Email verified successfully! Redirecting to sign in...');
+      setIsLoading(false);
+      
+      // Redirect to sign in page after successful verification
+      setTimeout(() => {
+        navigate('/signin');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Verification failed:', error);
+      toast.error('Verification failed. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      // Here you would typically call an API to resend the verification code
+      // For now, we'll simulate the resend
+      await new Promise(resolve => setTimeout(resolve, 500));
+      toast.success('Verification code resent! Please check your email.');
+    } catch (error) {
+      console.error('Resend failed:', error);
+      toast.error('Failed to resend code. Please try again.');
+    }
   };
 
   const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleResendCode = () => {
-    console.log('Resending verification code...');
   };
 
   return (
@@ -64,8 +116,8 @@ const SignUp = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-banking-primary rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className=" h-12  rounded-xl flex items-center justify-center">
+              <img src="/orbinw.png" alt="Logo" className="h-10" />
             </div>
           </div>
           <div>
@@ -74,7 +126,7 @@ const SignUp = () => {
             </CardTitle>
             <CardDescription className="text-gray-600">
               {step === 'details' 
-                ? 'Join MyBank and start managing your finances' 
+                ? 'Join Orbin and start managing your finances' 
                 : `We've sent a 6-digit code to ${formData.email}`
               }
             </CardDescription>
@@ -128,15 +180,29 @@ const SignUp = () => {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium text-gray-900">
+                <label htmlFor="username" className="text-sm font-medium text-gray-900">
+                  Username
+                </label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="johndoe123"
+                  value={formData.username}
+                  onChange={handleInputChange('username')}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="phoneNumber" className="text-sm font-medium text-gray-900">
                   Phone number
                 </label>
                 <Input
-                  id="phone"
+                  id="phoneNumber"
                   type="tel"
                   placeholder="+1 (555) 000-0000"
-                  value={formData.phone}
-                  onChange={handleInputChange('phone')}
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange('phoneNumber')}
                   required
                 />
               </div>
@@ -227,21 +293,51 @@ const SignUp = () => {
                 <label className="text-sm font-medium text-gray-900">
                   Verification code
                 </label>
-                <div className="flex justify-center">
-                  <InputOTP
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={setVerificationCode}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                <div className="flex justify-center gap-2">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <Input
+                      key={index}
+                      type="text"
+                      maxLength={1}
+                      value={verificationCode[index] || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        if (value.length <= 1 && /^[0-9A-Z]*$/.test(value)) {
+                          const newCode = verificationCode.split('');
+                          newCode[index] = value;
+                          setVerificationCode(newCode.join(''));
+                          
+                          // Auto-focus next input
+                          if (value && index < 5) {
+                            const nextInput = document.getElementById(`otp-${index + 1}`);
+                            nextInput?.focus();
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Handle backspace
+                        if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+                          const prevInput = document.getElementById(`otp-${index - 1}`);
+                          prevInput?.focus();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pastedData = e.clipboardData.getData('text');
+                        const validChars = pastedData.replace(/[^0-9A-Za-z]/g, '').toUpperCase().slice(0, 6);
+                        if (validChars.length > 0) {
+                          setVerificationCode(validChars.padEnd(6, ''));
+                          // Focus the last filled input or the next empty one
+                          const nextIndex = Math.min(validChars.length, 5);
+                          const nextInput = document.getElementById(`otp-${nextIndex}`);
+                          nextInput?.focus();
+                        }
+                      }}
+                      id={`otp-${index}`}
+                      className="w-12 h-12 text-center text-lg font-semibold"
+                      autoComplete="off"
+                    />
+                  ))}
                 </div>
               </div>
 

@@ -57,7 +57,7 @@ const AdminSignIn = () => {
             </CardTitle>
             <CardDescription className="text-gray-600">
               {step === 'credentials' 
-                ? 'Sign in to MyBank Admin Portal' 
+                ? 'Sign in to <span className="text-orange-500">Orbin</span> Admin Portal' 
                 : `We've sent a 6-digit code to ${email}`
               }
             </CardDescription>

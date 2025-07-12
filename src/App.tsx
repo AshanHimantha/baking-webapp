@@ -1,10 +1,11 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import KYCOnlyRoute from "@/components/KYCOnlyRoute";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -36,23 +37,74 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/kyc" element={<KYC />} />
+            <Route
+              path="/kyc"
+              element={
+                <KYCOnlyRoute>
+                  <KYC />
+                </KYCOnlyRoute>
+              }
+            />
             <Route path="/admin/signin" element={<AdminSignIn />} />
             
             {/* Customer Banking Routes */}
-            <Route path="/customer/dashboard" element={<CustomerDashboard />} />
-            <Route path="/customer/transactions" element={<CustomerTransactions />} />
-            <Route path="/customer/transfer" element={<CustomerTransfer />} />
-            <Route path="/customer/cards" element={<CustomerCards />} />
-            <Route path="/customer/profile" element={<CustomerProfile />} />
+            <Route path="/customer/dashboard" element={
+              <ProtectedRoute requiredRole="CUSTOMER">
+                <CustomerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/customer/transactions" element={
+              <ProtectedRoute requiredRole="CUSTOMER">
+                <CustomerTransactions />
+              </ProtectedRoute>
+            } />
+            <Route path="/customer/transfer" element={
+              <ProtectedRoute requiredRole="CUSTOMER">
+                <CustomerTransfer />
+              </ProtectedRoute>
+            } />
+            <Route path="/customer/cards" element={
+              <ProtectedRoute requiredRole="CUSTOMER">
+                <CustomerCards />
+              </ProtectedRoute>
+            } />
+            <Route path="/customer/profile" element={
+              <ProtectedRoute requiredRole="CUSTOMER">
+                <CustomerProfile />
+              </ProtectedRoute>
+            } />
             
             {/* Admin Dashboard Routes */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/customers" element={<AdminCustomers />} />
-            <Route path="/admin/transactions" element={<AdminTransactions />} />
-            <Route path="/admin/approvals" element={<AdminApprovals />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/profile" element={<AdminProfile />} />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/customers" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminCustomers />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/transactions" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminTransactions />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/approvals" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminApprovals />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminReports />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/profile" element={
+              <ProtectedRoute requiredRole="ADMIN">
+                <AdminProfile />
+              </ProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

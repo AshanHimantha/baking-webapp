@@ -327,7 +327,7 @@ const Index = () => {
               Trusted by millions worldwide
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Join the community of users who have chosen MyBank for their financial journey.
+              Join the community of users who have chosen <span className="text-orange-500">Orbin</span> for their financial journey.
             </p>
           </div>
           
