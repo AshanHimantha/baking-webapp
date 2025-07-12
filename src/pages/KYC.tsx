@@ -47,6 +47,8 @@ const KYC = () => {
         const response = await apiClient.get(`/api/kyc/documents/user/${user.sub}`);
         
         if (response.data.success && response.data.data) {
+          console.log('Existing KYC data:', response.data.data);
+
           const kycData = response.data.data;
           setExistingKyc(kycData);
           
@@ -67,8 +69,30 @@ const KYC = () => {
               idNumber: kycData.idNumber || '',
               idType: 'passport'
             });
-          } else if (kycData.status === 'APPROVED') {
+          } else if (kycData.status === 'VERIFIED') {
+            
+            
+            // Refresh token when KYC is verified
+            try {
+              const currentToken = localStorage.getItem('jwt_token');
+              console.log('Current token before refresh:', currentToken);
+              const refreshResponse = await apiClient.post('/api/auth/refresh-token', {
+                currentToken: currentToken,
+                username: user.username || user.sub
+              });
+              
+              if (refreshResponse.data.token) {
+                // Update localStorage with new token
+                localStorage.setItem('jwt_token', refreshResponse.data.token);
+                console.log('Token refreshed successfully after KYC verification');
+              }
+            } catch (error) {
+              console.error('Error refreshing token after KYC verification:', error);
+            }
             setKycStatus('approved');
+            // Redirect to dashboard immediately if KYC is verified
+            navigate('/customer/dashboard');
+            return;
           }
         } else {
           setKycStatus('none');

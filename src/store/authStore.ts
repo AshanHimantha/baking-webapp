@@ -6,6 +6,10 @@ export type UserRole = 'NONE' | 'CUSTOMER' | 'EMPLOYEE' | 'ADMIN';
 
 interface User {
   sub: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  kycStatus?: string;
   roles: UserRole[];
   iat: number;
   exp: number;

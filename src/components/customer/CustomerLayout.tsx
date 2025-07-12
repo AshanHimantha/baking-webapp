@@ -15,9 +15,11 @@ import {
   Sun,
   Moon,
   LogOut,
-  Building2
+  Building2,
+  Settings
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { useAuthStore } from "@/store/authStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +36,20 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { theme, setTheme } = useTheme();
+  const { getUserRole, getUser } = useAuthStore();
+
+  const userRole = getUserRole();
+  const user = getUser();
+  const isAdminOrEmployee = userRole === 'ADMIN' || userRole === 'EMPLOYEE';
+
+  // Extract user display information
+  const userName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.firstName || user?.lastName || 'User';
+  const userEmail = user?.email || 'user@example.com';
+  const userInitials = user?.firstName && user?.lastName 
+    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    : userName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
   const navigation = [
     { name: 'Dashboard', href: '/customer/dashboard', icon: Home },
@@ -60,9 +76,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between h-16 px-4 lg:px-6 border-b border-border flex-shrink-0">
-          <div className="flex items-center space-x-2">
-            <Building2 className="w-7 h-7 lg:w-8 lg:h-8 text-banking-primary" />
-            <span className="text-lg lg:text-xl font-bold text-foreground">MyBank</span>
+          <div className="flex items-center ">
+            <img src="/orbinw.png" alt="Logo" className="h-10 " />
           </div>
           <Button
             variant="ghost"
@@ -103,14 +118,14 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             <div className="flex items-center space-x-3">
               <Avatar className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0">
                 <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback className="bg-banking-primary text-white text-sm lg:text-base">JD</AvatarFallback>
+                <AvatarFallback className="bg-banking-primary text-white text-sm lg:text-base">{userInitials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
-                  John Doe
+                  {userName}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  john@example.com
+                  {userEmail}
                 </p>
               </div>
             </div>
@@ -163,17 +178,17 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 lg:h-9 lg:w-9 rounded-full p-0">
                     <Avatar className="h-8 w-8 lg:h-9 lg:w-9">
-                      <AvatarImage src="/placeholder.svg" alt="@johndoe" />
-                      <AvatarFallback className="bg-banking-primary text-white text-sm">JD</AvatarFallback>
+                      <AvatarImage src="/placeholder.svg" alt={`@${userName.toLowerCase().replace(' ', '')}`} />
+                      <AvatarFallback className="bg-banking-primary text-white text-sm">{userInitials}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 lg:w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-sm">John Doe</p>
+                      <p className="font-medium text-sm">{userName}</p>
                       <p className="w-[180px] lg:w-[200px] truncate text-xs text-muted-foreground">
-                        john@example.com
+                        {userEmail}
                       </p>
                     </div>
                   </div>
@@ -184,6 +199,14 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {isAdminOrEmployee && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard" className="cursor-pointer text-sm">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer text-destructive text-sm">
                     <LogOut className="mr-2 h-4 w-4" />

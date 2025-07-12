@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+
 import { Building2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRedirectIfAuthenticated } from "@/hooks/useAuthGuard";
@@ -60,10 +60,10 @@ const SignIn = () => {
         navigate('/customer/dashboard');
       } else if (userRole === 'EMPLOYEE') {
         toast.success('Employee login successful! Redirecting to admin dashboard...');
-        navigate('/admin/dashboard');
+        navigate('/customer/dashboard');
       } else if (userRole === 'ADMIN') {
         toast.success('Admin login successful! Redirecting to admin dashboard...');
-        navigate('/admin/dashboard');
+        navigate('/customer/dashboard');
       } else {
         toast.error('Unknown user role. Please contact support.');
       }
@@ -179,34 +179,56 @@ const SignIn = () => {
                 </Button>
               </div>
 
-              <div className="space-y-2 w-full text-center">
-                <label className="text-sm font-medium text-center text-gray-900">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-900">
                   Verification code
                 </label>
-                <div className="flex justify-center">
-                  <InputOTP
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={(value) => {
-                      console.log('OTP value changed:', value);
-                      setVerificationCode(value);
-                    }}
-                    autoFocus
-                    pattern="^[A-Z0-9]+$"
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                <div className="flex justify-center gap-2">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <Input
+                      key={index}
+                      type="text"
+                      maxLength={1}
+                      value={verificationCode[index] || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        if (value.length <= 1 && /^[0-9A-Z]*$/.test(value)) {
+                          const newCode = verificationCode.split('');
+                          newCode[index] = value;
+                          setVerificationCode(newCode.join(''));
+                          
+                          // Auto-focus next input
+                          if (value && index < 5) {
+                            const nextInput = document.getElementById(`signin-otp-${index + 1}`);
+                            nextInput?.focus();
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Handle backspace
+                        if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+                          const prevInput = document.getElementById(`signin-otp-${index - 1}`);
+                          prevInput?.focus();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pastedData = e.clipboardData.getData('text');
+                        const validChars = pastedData.replace(/[^0-9A-Za-z]/g, '').toUpperCase().slice(0, 6);
+                        if (validChars.length > 0) {
+                          setVerificationCode(validChars.padEnd(6, ''));
+                          // Focus the last filled input or the next empty one
+                          const nextIndex = Math.min(validChars.length, 5);
+                          const nextInput = document.getElementById(`signin-otp-${nextIndex}`);
+                          nextInput?.focus();
+                        }
+                      }}
+                      id={`signin-otp-${index}`}
+                      className="w-12 h-12 text-center text-lg font-semibold"
+                      autoComplete="off"
+                    />
+                  ))}
                 </div>
-                <p className="text-xs text-gray-500 text-center">
-                  Current code: {verificationCode || 'None'} (Length: {verificationCode.length})
-                </p>
               </div>
 
               <Button
