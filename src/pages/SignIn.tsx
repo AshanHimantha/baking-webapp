@@ -19,11 +19,35 @@ const SignIn = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call for login and sending verification code
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    setStep('verification');
+    // Use form data instead of hardcoded credentials
+    const credentials = {
+      username: email,
+      password: password
+    };
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Login successful:', data);
+      setStep('verification');
+    } catch (error) {
+      console.error('Error during login:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
@@ -47,8 +71,8 @@ const SignIn = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-12 h-12 bg-banking-primary rounded-xl flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-white" />
+            <div className=" h-20 rounded-xl flex items-center justify-center">
+              <img src="/orbinw.png" alt="Logo" className="h-16" />
             </div>
           </div>
           <div>
