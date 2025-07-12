@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   redirectTo = '/signin'
 }) => {
-  const { isAuthenticated, getUserRole, getUser } = useAuthStore();
+  const { isAuthenticated, getUserRole, hasRole, getUser } = useAuthStore();
   const location = useLocation();
 
   // Check if user is authenticated
@@ -24,12 +24,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check if user has required role
   if (requiredRole) {
     const userRole = getUserRole();
-    if (userRole !== requiredRole) {
+    
+    // If user doesn't have the required role, check for redirects
+    if (!hasRole(requiredRole)) {
       // If user role is NONE, redirect to KYC
       if (userRole === 'NONE') {
         return <Navigate to="/kyc" replace />;
       }
-      // Otherwise, redirect to appropriate dashboard
+      // Otherwise, redirect to appropriate dashboard based on their primary role
       const dashboardPath = userRole === 'CUSTOMER' ? '/customer/dashboard' : '/admin/dashboard';
       return <Navigate to={dashboardPath} replace />;
     }

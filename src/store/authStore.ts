@@ -24,6 +24,7 @@ interface AuthState {
   getToken: () => string | null;
   getUser: () => User | null;
   getUserRole: () => UserRole | null;
+  hasRole: (role: UserRole) => boolean;
   isAuthenticated: () => boolean;
   isTokenExpired: () => boolean;
 }
@@ -111,6 +112,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       return null;
     }
     return user.roles[0]; // Return the first role
+  },
+
+  hasRole: (role: UserRole) => {
+    const user = get().getUser();
+    if (!user || !user.roles || user.roles.length === 0) {
+      return false;
+    }
+    return user.roles.includes(role);
   },
 
   isAuthenticated: () => {
