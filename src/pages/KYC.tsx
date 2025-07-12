@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Upload, Check, ArrowLeft, Calendar, MapPin, User, CreditCard } from "lucide-react";
+import { Building2, Upload, Check, ArrowLeft, Calendar, MapPin, User, CreditCard, X } from "lucide-react";
 
 const KYC = () => {
   const [step, setStep] = useState<'documents' | 'details' | 'review'>('documents');
   const [idFront, setIdFront] = useState<File | null>(null);
   const [idBack, setIdBack] = useState<File | null>(null);
+  const [idFrontPreview, setIdFrontPreview] = useState<string | null>(null);
+  const [idBackPreview, setIdBackPreview] = useState<string | null>(null);
   const [personalDetails, setPersonalDetails] = useState({
     fullName: '',
     dateOfBirth: '',
@@ -20,9 +22,6 @@ const KYC = () => {
     city: '',
     postalCode: '',
     country: '',
-    occupation: '',
-    sourceOfIncome: '',
-    monthlyIncome: '',
     idNumber: '',
     idType: 'passport'
   });
@@ -31,8 +30,28 @@ const KYC = () => {
   const handleFileUpload = (file: File, type: 'front' | 'back') => {
     if (type === 'front') {
       setIdFront(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setIdFrontPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     } else {
       setIdBack(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setIdBackPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeFile = (type: 'front' | 'back') => {
+    if (type === 'front') {
+      setIdFront(null);
+      setIdFrontPreview(null);
+    } else {
+      setIdBack(null);
+      setIdBackPreview(null);
     }
   };
 
@@ -63,16 +82,20 @@ const KYC = () => {
 
   const FileUploadBox = ({ 
     file, 
+    preview,
     onFileChange, 
+    onRemove,
     title, 
     description 
   }: { 
     file: File | null; 
+    preview: string | null;
     onFileChange: (file: File) => void; 
+    onRemove: () => void;
     title: string; 
     description: string; 
   }) => (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-banking-primary transition-colors">
+    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-banking-primary transition-colors">
       <input
         type="file"
         accept="image/*,.pdf"
@@ -83,23 +106,40 @@ const KYC = () => {
         className="hidden"
         id={title.toLowerCase().replace(' ', '-')}
       />
-      <label htmlFor={title.toLowerCase().replace(' ', '-')} className="cursor-pointer">
-        {file ? (
-          <div className="space-y-2">
-            <Check className="w-8 h-8 text-green-500 mx-auto" />
-            <p className="text-sm font-medium text-gray-900">{file.name}</p>
-            <p className="text-xs text-gray-500">Click to change file</p>
+      
+      {preview ? (
+        <div className="space-y-4">
+          <div className="relative">
+            <img 
+              src={preview} 
+              alt={title}
+              className="w-full h-48 object-contain rounded-lg border"
+            />
+            <button
+              onClick={onRemove}
+              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        ) : (
-          <div className="space-y-2">
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-900">{file?.name}</p>
+            <label htmlFor={title.toLowerCase().replace(' ', '-')} className="text-xs text-banking-primary cursor-pointer hover:underline">
+              Click to change file
+            </label>
+          </div>
+        </div>
+      ) : (
+        <label htmlFor={title.toLowerCase().replace(' ', '-')} className="cursor-pointer">
+          <div className="text-center space-y-2">
             <Upload className="w-8 h-8 text-gray-400 mx-auto" />
             <div>
               <p className="text-sm font-medium text-gray-900">{title}</p>
               <p className="text-xs text-gray-500">{description}</p>
             </div>
           </div>
-        )}
-      </label>
+        </label>
+      )}
     </div>
   );
 
@@ -132,13 +172,17 @@ const KYC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FileUploadBox
                   file={idFront}
+                  preview={idFrontPreview}
                   onFileChange={(file) => handleFileUpload(file, 'front')}
+                  onRemove={() => removeFile('front')}
                   title="ID Front"
                   description="Upload front side of your ID"
                 />
                 <FileUploadBox
                   file={idBack}
+                  preview={idBackPreview}
                   onFileChange={(file) => handleFileUpload(file, 'back')}
+                  onRemove={() => removeFile('back')}
                   title="ID Back"
                   description="Upload back side of your ID"
                 />
@@ -287,47 +331,6 @@ const KYC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="occupation" className="text-sm font-medium text-gray-900">
-                    Occupation
-                  </Label>
-                  <Input
-                    id="occupation"
-                    value={personalDetails.occupation}
-                    onChange={handleInputChange('occupation')}
-                    placeholder="Your occupation"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="monthlyIncome" className="text-sm font-medium text-gray-900">
-                    Monthly Income
-                  </Label>
-                  <Input
-                    id="monthlyIncome"
-                    value={personalDetails.monthlyIncome}
-                    onChange={handleInputChange('monthlyIncome')}
-                    placeholder="Monthly income"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sourceOfIncome" className="text-sm font-medium text-gray-900">
-                  Source of Income
-                </Label>
-                <Input
-                  id="sourceOfIncome"
-                  value={personalDetails.sourceOfIncome}
-                  onChange={handleInputChange('sourceOfIncome')}
-                  placeholder="e.g., Employment, Business, Investments"
-                  required
-                />
-              </div>
-
               <div className="flex justify-between">
                 <Button 
                   variant="ghost" 
@@ -352,15 +355,33 @@ const KYC = () => {
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-medium text-gray-900 mb-3">Uploaded Documents</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-700">ID Front: {idFront?.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-700">ID Back: {idBack?.name}</span>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {idFrontPreview && (
+                      <div className="space-y-2">
+                        <img 
+                          src={idFrontPreview} 
+                          alt="ID Front"
+                          className="w-full h-32 object-contain rounded border"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Check className="w-4 h-4 text-green-500" />
+                          <span className="text-sm text-gray-700">ID Front: {idFront?.name}</span>
+                        </div>
+                      </div>
+                    )}
+                    {idBackPreview && (
+                      <div className="space-y-2">
+                        <img 
+                          src={idBackPreview} 
+                          alt="ID Back"
+                          className="w-full h-32 object-contain rounded border"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Check className="w-4 h-4 text-green-500" />
+                          <span className="text-sm text-gray-700">ID Back: {idBack?.name}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -374,8 +395,6 @@ const KYC = () => {
                     <div className="md:col-span-2"><span className="font-medium">Address:</span> {personalDetails.address}</div>
                     <div><span className="font-medium">City:</span> {personalDetails.city}</div>
                     <div><span className="font-medium">Country:</span> {personalDetails.country}</div>
-                    <div><span className="font-medium">Occupation:</span> {personalDetails.occupation}</div>
-                    <div><span className="font-medium">Monthly Income:</span> {personalDetails.monthlyIncome}</div>
                   </div>
                 </div>
               </div>
