@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import AdminSignIn from "./pages/admin/SignIn";
 import CustomerDashboard from "./pages/customer/Dashboard";
 import CustomerTransactions from "./pages/customer/Transactions";
 import CustomerTransfer from "./pages/customer/Transfer";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/admin/signin" element={<AdminSignIn />} />
             
             {/* Customer Banking Routes */}
             <Route path="/customer/dashboard" element={<CustomerDashboard />} />
