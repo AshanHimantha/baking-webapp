@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, ArrowRight, Play, CheckCircle, Shield, Clock, Zap, PiggyBank, Smartphone, CreditCard, BarChart3, Eye, Lock, Users, Menu, X } from "lucide-react";
+import { Building2, ArrowRight, Play, CheckCircle, Shield, Clock, Zap, PiggyBank, Smartphone, CreditCard, BarChart3, Eye, Lock, Users, Menu, X, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const Index = () => {
