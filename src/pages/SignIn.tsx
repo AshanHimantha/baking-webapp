@@ -5,19 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Building2, ArrowLeft } from "lucide-react";
+import { Building2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const SignIn = () => {
-  const [step, setStep] = useState<'email' | 'verification'>('email');
+  const [step, setStep] = useState<'credentials' | 'verification'>('credentials');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate API call for login and sending verification code
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     setIsLoading(false);
@@ -51,10 +53,10 @@ const SignIn = () => {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              {step === 'email' ? 'Welcome back' : 'Verify your email'}
+              {step === 'credentials' ? 'Welcome back' : 'Verify your email'}
             </CardTitle>
             <CardDescription className="text-gray-600">
-              {step === 'email' 
+              {step === 'credentials' 
                 ? 'Sign in to your MyBank account' 
                 : `We've sent a 6-digit code to ${email}`
               }
@@ -63,8 +65,8 @@ const SignIn = () => {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {step === 'email' ? (
-            <form onSubmit={handleEmailSubmit} className="space-y-4">
+          {step === 'credentials' ? (
+            <form onSubmit={handleCredentialsSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-gray-900">
                   Email address
@@ -79,13 +81,43 @@ const SignIn = () => {
                   className="w-full"
                 />
               </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-gray-900">
+                  Password
+                </label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-500" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    )}
+                  </Button>
+                </div>
+              </div>
               
               <Button 
                 type="submit" 
                 className="w-full bg-banking-primary hover:bg-banking-primaryDark text-white"
                 disabled={isLoading}
               >
-                {isLoading ? 'Sending code...' : 'Continue'}
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
           ) : (
@@ -94,11 +126,11 @@ const SignIn = () => {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setStep('email')}
+                  onClick={() => setStep('credentials')}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to email
+                  Back to sign in
                 </Button>
               </div>
 

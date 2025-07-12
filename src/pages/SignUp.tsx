@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Building2, ArrowLeft } from "lucide-react";
+import { Building2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const SignUp = () => {
   const [step, setStep] = useState<'details' | 'verification'>('details');
@@ -13,13 +13,23 @@ const SignUp = () => {
     firstName: '',
     lastName: '',
     email: '',
-    phone: ''
+    phone: '',
+    password: '',
+    confirmPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      console.error('Passwords do not match');
+      return;
+    }
+    
     setIsLoading(true);
     
     // Simulate API call
@@ -130,6 +140,66 @@ const SignUp = () => {
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-gray-900">
+                  Password
+                </label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    value={formData.password}
+                    onChange={handleInputChange('password')}
+                    required
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-500" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-900">
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange('confirmPassword')}
+                    required
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-500" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    )}
+                  </Button>
+                </div>
+              </div>
               
               <Button 
                 type="submit" 
@@ -196,7 +266,7 @@ const SignUp = () => {
 
           <div className="text-center">
             <span className="text-sm text-gray-600">
-              Already have an account?{' '}
+              {step === 'details' ? 'Already have an account?' : 'Already have an account?'}{' '}
               <Link to="/signin" className="text-banking-primary hover:text-banking-primaryDark font-medium">
                 Sign in
               </Link>
