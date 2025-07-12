@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import KYC from "./pages/KYC";
 import AdminSignIn from "./pages/admin/SignIn";
 import CustomerDashboard from "./pages/customer/Dashboard";
 import CustomerTransactions from "./pages/customer/Transactions";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/kyc" element={<KYC />} />
             <Route path="/admin/signin" element={<AdminSignIn />} />
             
             {/* Customer Banking Routes */}
