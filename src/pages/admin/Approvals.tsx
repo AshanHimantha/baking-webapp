@@ -17,7 +17,14 @@ import {
   Eye,
   FileText,
   Image as ImageIcon,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  MapPin,
+  Home,
+  Flag,
+  IdCard,
+  Mail,
+  Phone
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -84,6 +91,10 @@ const AdminApprovals = () => {
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null);
   const [reviewDocument, setReviewDocument] = useState<{ username: string; documentId: number } | null>(null);
   const [currentUser, setCurrentUser] = useState<string>('');
+  const [fullSizeImageOpen, setFullSizeImageOpen] = useState(false);
+  const [fullSizeImageUrl, setFullSizeImageUrl] = useState<string>('');
+  const [fullSizeImageTitle, setFullSizeImageTitle] = useState<string>('');
+  const [loadingFullSizeImage, setLoadingFullSizeImage] = useState(false);
 
   // Get current user from JWT token
   const getCurrentUser = () => {
@@ -129,13 +140,41 @@ const AdminApprovals = () => {
   // Fetch authenticated image as blob and create object URL
   const fetchAuthenticatedImage = async (imageUrl: string): Promise<string> => {
     try {
-      const response = await apiClient.get(imageUrl, {
+      console.log('Fetching image from URL:', imageUrl);
+      
+      // Get the JWT token
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.error('No auth token found');
+        return '/placeholder.svg';
+      }
+      
+      // Extract the relative path from the full URL for the API call
+      const urlParts = imageUrl.split('/api');
+      const apiPath = urlParts.length > 1 ? `/api${urlParts[1]}` : imageUrl;
+      console.log('API path for image request:', apiPath);
+      
+      // Use apiClient which already has the correct base URL and auth interceptor
+      const response = await apiClient.get(apiPath, {
         responseType: 'blob',
       });
+      
+      console.log('Image fetch response status:', response.status);
       const blob = response.data;
       return URL.createObjectURL(blob);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching authenticated image:', error);
+      
+      // Try to read the error response if it's a blob
+      if (error.response?.data instanceof Blob) {
+        try {
+          const errorText = await error.response.data.text();
+          console.error('Error response body:', errorText);
+        } catch (blobError) {
+          console.error('Could not read error blob:', blobError);
+        }
+      }
+      
       return '/placeholder.svg';
     }
   };
@@ -150,21 +189,21 @@ const AdminApprovals = () => {
       return imageUrl;
     }
     
-    // If it's a relative path from the API (like /api/admin/kyc/images/filename.jpg)
-    // prepend the base URL
     const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
     console.log('Base URL:', baseUrl);
     
-    // If the imageUrl already starts with /api, just prepend the base URL
-    if (imageUrl.startsWith('/api')) {
-      const finalUrl = `${baseUrl}${imageUrl}`;
-      console.log('Final image URL (starts with /api):', finalUrl);
-      return finalUrl;
+    // Extract just the filename from the imageUrl if it contains path separators
+    let filename = imageUrl;
+    
+    // If imageUrl contains path separators, extract just the filename
+    if (imageUrl.includes('/')) {
+      filename = imageUrl.split('/').pop() || imageUrl;
+      console.log('Extracted filename from path:', filename);
     }
     
-    // Otherwise, construct the full path
-    const finalUrl = `${baseUrl}/api/admin/kyc/images/${imageUrl}`;
-    console.log('Final image URL (constructed):', finalUrl);
+    // Always construct the URL as /api/admin/kyc/images/{filename}
+    const finalUrl = `${baseUrl}/api/admin/kyc/images/${filename}`;
+    console.log('Final image URL:', finalUrl);
     return finalUrl;
   };
 
@@ -178,17 +217,24 @@ const AdminApprovals = () => {
       if (response.data.success) {
         console.log('API Response data:', response.data.data);
         
+        // Create proper URLs for the image paths
+        const frontImageUrl = createAuthenticatedImageUrl(response.data.data.frontImageUrl);
+        const backImageUrl = createAuthenticatedImageUrl(response.data.data.backImageUrl);
+        
+        console.log('Constructed front image URL:', frontImageUrl);
+        console.log('Constructed back image URL:', backImageUrl);
+        
         // Fetch the actual images with authentication and create object URLs
-        const frontImageUrl = await fetchAuthenticatedImage(response.data.data.frontImageUrl);
-        const backImageUrl = await fetchAuthenticatedImage(response.data.data.backImageUrl);
+        const frontBlobUrl = await fetchAuthenticatedImage(frontImageUrl);
+        const backBlobUrl = await fetchAuthenticatedImage(backImageUrl);
         
         const authenticatedImages: KYCImageUrls = {
           ...response.data.data,
-          frontImageUrl,
-          backImageUrl
+          frontImageUrl: frontBlobUrl,
+          backImageUrl: backBlobUrl
         };
         
-        console.log('Authenticated images with object URLs:', authenticatedImages);
+        console.log('Final images with blob URLs:', authenticatedImages);
         setDocumentImages(authenticatedImages);
       } else {
         toast.error(response.data.error || 'Failed to fetch document images');
@@ -365,6 +411,17 @@ const AdminApprovals = () => {
     if (daysSinceSubmission >= 3) return 'high';
     if (daysSinceSubmission >= 1) return 'medium';
     return 'low';
+  };
+
+  // Open full size image view
+  const openFullSizeImage = async (imageUrl: string, title: string) => {
+    setFullSizeImageTitle(title);
+    setFullSizeImageOpen(true);
+    setLoadingFullSizeImage(true);
+    
+    // Always use the blob URL directly since we already have it
+    setFullSizeImageUrl(imageUrl);
+    setLoadingFullSizeImage(false);
   };
 
   return (
@@ -565,26 +622,92 @@ const AdminApprovals = () => {
             {selectedDocument && (
               <div className="space-y-6">
                 {/* Personal Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Personal Information</h3>
-                    <div className="space-y-2 text-sm">
-                      <div><span className="font-medium">Full Name:</span> {selectedDocument.fullName}</div>
-                      <div><span className="font-medium">Username:</span> {selectedDocument.username}</div>
-                      <div><span className="font-medium">Date of Birth:</span> {selectedDocument.dateOfBirth}</div>
-                      <div><span className="font-medium">Nationality:</span> {selectedDocument.nationality}</div>
-                      <div><span className="font-medium">ID Number:</span> {selectedDocument.idNumber}</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-600 dark:text-blue-400">
+                      <User className="w-5 h-5 mr-2" />
+                      Personal Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <User className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Full Name</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.fullName}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Username</span>
+                          <span className="font-medium text-gray-900 dark:text-white">@{selectedDocument.username}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Date of Birth</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.dateOfBirth}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Flag className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Nationality</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.nationality}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <IdCard className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">ID Number</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.idNumber}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Address Information</h3>
-                    <div className="space-y-2 text-sm">
-                      <div><span className="font-medium">Address:</span> {selectedDocument.address}</div>
-                      <div><span className="font-medium">City:</span> {selectedDocument.city}</div>
-                      <div><span className="font-medium">Postal Code:</span> {selectedDocument.postalCode}</div>
-                      <div><span className="font-medium">Country:</span> {selectedDocument.country}</div>
-                      <div><span className="font-medium">Submitted:</span> {new Date(selectedDocument.submittedAt).toLocaleString()}</div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center text-green-600 dark:text-green-400">
+                      <MapPin className="w-5 h-5 mr-2" />
+                      Address Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <Home className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Street Address</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.address}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">City</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.city}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Postal Code</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.postalCode}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Flag className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Country</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{selectedDocument.country}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Clock className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block">Submitted</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{new Date(selectedDocument.submittedAt).toLocaleString()}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -596,37 +719,68 @@ const AdminApprovals = () => {
                     <p className="text-gray-500 dark:text-gray-400">Loading document images...</p>
                   </div>
                 ) : documentImages && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Document Images</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-2 flex items-center">
-                          <ImageIcon className="w-4 h-4 mr-2" />
-                          ID Front
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center text-purple-600 dark:text-purple-400">
+                      <ImageIcon className="w-5 h-5 mr-2" />
+                      Document Images
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+                        <h4 className="font-medium mb-3 flex items-center text-blue-600 dark:text-blue-400">
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          ID Front Side
                         </h4>
-                        <img 
-                          src={documentImages.frontImageUrl} 
-                          alt="ID Front" 
-                          className="w-full h-48 object-cover rounded border"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
-                        />
+                        <div 
+                          className="cursor-pointer hover:opacity-80 transition-opacity group"
+                          onClick={() => openFullSizeImage(documentImages.frontImageUrl, `${selectedDocument.fullName} - ID Front`)}
+                        >
+                          <div className="relative">
+                            <img 
+                              src={documentImages.frontImageUrl} 
+                              alt="ID Front" 
+                              className="w-full h-48 object-cover rounded border hover:shadow-xl transition-shadow"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center">
+                              <Eye className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-3 text-center flex items-center justify-center">
+                          <Eye className="w-3 h-3 mr-1" />
+                          Click to view full size
+                        </p>
                       </div>
                       
-                      <div className="border rounded-lg p-4">
-                        <h4 className="font-medium mb-2 flex items-center">
-                          <ImageIcon className="w-4 h-4 mr-2" />
-                          ID Back
+                      <div className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-500 transition-colors">
+                        <h4 className="font-medium mb-3 flex items-center text-blue-600 dark:text-blue-400">
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          ID Back Side
                         </h4>
-                        <img 
-                          src={documentImages.backImageUrl} 
-                          alt="ID Back" 
-                          className="w-full h-48 object-cover rounded border"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
-                        />
+                        <div 
+                          className="cursor-pointer hover:opacity-80 transition-opacity group"
+                          onClick={() => openFullSizeImage(documentImages.backImageUrl, `${selectedDocument.fullName} - ID Back`)}
+                        >
+                          <div className="relative">
+                            <img 
+                              src={documentImages.backImageUrl} 
+                              alt="ID Back" 
+                              className="w-full h-48 object-cover rounded border hover:shadow-xl transition-shadow"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center">
+                              <Eye className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-3 text-center flex items-center justify-center">
+                          <Eye className="w-3 h-3 mr-1" />
+                          Click to view full size
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -684,6 +838,47 @@ const AdminApprovals = () => {
                   Reject
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Full Size Image Dialog */}
+        <Dialog open={fullSizeImageOpen} onOpenChange={setFullSizeImageOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto p-2">
+            <DialogHeader className="px-4 py-2">
+              <DialogTitle className="text-lg">{fullSizeImageTitle}</DialogTitle>
+            </DialogHeader>
+            
+            <div className="flex justify-center items-center p-4 min-h-[400px]">
+              {loadingFullSizeImage ? (
+                <div className="text-center">
+                  <RefreshCw className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-spin" />
+                  <p className="text-gray-500 dark:text-gray-400">Loading full size image...</p>
+                </div>
+              ) : (
+                <img 
+                  src={fullSizeImageUrl} 
+                  alt={fullSizeImageTitle}
+                  className="max-w-full max-h-[75vh] object-contain rounded border shadow-lg"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+              )}
+            </div>
+            
+            <div className="flex justify-center pb-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFullSizeImageOpen(false);
+                  setFullSizeImageUrl('');
+                  setLoadingFullSizeImage(false);
+                }}
+                className="w-32"
+              >
+                Close
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

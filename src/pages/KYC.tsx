@@ -238,7 +238,7 @@ const KYC = () => {
     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-banking-primary transition-colors">
       <input
         type="file"
-        accept="image/*,.pdf"
+        accept="image/*"
         onChange={(e) => {
           const selectedFile = e.target.files?.[0];
           if (selectedFile) onFileChange(selectedFile);
@@ -438,7 +438,7 @@ const KYC = () => {
                       <li>• Clear, high-quality images</li>
                       <li>• All text must be readable</li>
                       <li>• No shadows or glare</li>
-                      <li>• Accepted formats: JPG, PNG, PDF</li>
+                      <li>• Accepted formats: JPG, PNG</li>
                     </ul>
                   </div>
 

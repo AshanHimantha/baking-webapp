@@ -76,9 +76,17 @@ const SignUp = () => {
     setIsLoading(true);
     
     try {
-      // Here you would typically call an email verification API
-      // For now, we'll simulate the verification
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the email verification API
+      const response = await apiClient.post('/api/auth/verify-email', {
+        email: formData.email,
+        code: verificationCode
+      });
+      
+      // Store the token in local storage
+      if (response.data.token) {
+        localStorage.setItem('auth_token', response.data.token);
+        console.log('Token stored in localStorage:', response.data.token);
+      }
       
       toast.success('Email verified successfully! Redirecting to sign in...');
       setIsLoading(false);
@@ -88,22 +96,21 @@ const SignUp = () => {
         navigate('/signin');
       }, 2000);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Verification failed:', error);
-      toast.error('Verification failed. Please try again.');
+      
+      // Extract error message from backend response
+      let errorMessage = 'Verification failed. Please try again.';
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       setIsLoading(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    try {
-      // Here you would typically call an API to resend the verification code
-      // For now, we'll simulate the resend
-      await new Promise(resolve => setTimeout(resolve, 500));
-      toast.success('Verification code resent! Please check your email.');
-    } catch (error) {
-      console.error('Resend failed:', error);
-      toast.error('Failed to resend code. Please try again.');
     }
   };
 
@@ -340,15 +347,6 @@ const SignUp = () => {
                   ))}
                 </div>
               </div>
-
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleResendCode}
-                className="w-full text-banking-primary hover:text-banking-primaryDark"
-              >
-                Didn't receive a code? Resend
-              </Button>
               
               <Button 
                 type="submit" 

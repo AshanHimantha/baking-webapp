@@ -60,10 +60,10 @@ const SignIn = () => {
         navigate('/customer/dashboard');
       } else if (userRole === 'EMPLOYEE') {
         toast.success('Employee login successful! Redirecting to admin dashboard...');
-        navigate('/customer/dashboard');
+        navigate('/admin/dashboard');
       } else if (userRole === 'ADMIN') {
         toast.success('Admin login successful! Redirecting to admin dashboard...');
-        navigate('/customer/dashboard');
+        navigate('/admin/dashboard');
       } else {
         toast.error('Unknown user role. Please contact support.');
       }
