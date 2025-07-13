@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -35,8 +35,9 @@ interface CustomerLayoutProps {
 const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const { getUserRole, getUser } = useAuthStore();
+  const { getUserRole, getUser, logout } = useAuthStore();
 
   const userRole = getUserRole();
   const user = getUser();
@@ -60,6 +61,11 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   ];
 
   const isCurrentPath = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
 
   return (
     <div className="h-screen flex bg-background font-geist overflow-hidden">
@@ -208,7 +214,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-destructive text-sm">
+                  <DropdownMenuItem className="cursor-pointer text-destructive text-sm" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>

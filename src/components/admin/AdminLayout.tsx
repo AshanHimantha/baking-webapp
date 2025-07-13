@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -19,6 +19,7 @@ import {
   Bell
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { useAuthStore } from "@/store/authStore";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -35,7 +36,9 @@ interface AdminLayoutProps {
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { logout } = useAuthStore();
 
   const navigation = [
     { name: 'Overview', href: '/admin/dashboard', icon: BarChart3 },
@@ -47,6 +50,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   ];
 
   const isCurrentPath = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/signin');
+  };
 
   return (
     <div className="h-screen flex bg-gray-50 dark:bg-gray-900 overflow-hidden">
@@ -196,7 +204,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-red-600">
+                  <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>

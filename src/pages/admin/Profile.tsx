@@ -18,9 +18,13 @@ import {
   Key
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 
 const AdminProfile = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: 'Admin',
@@ -53,6 +57,11 @@ const AdminProfile = () => {
       ...prev,
       [setting]: value
     }));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/signin');
   };
 
   return (
@@ -276,7 +285,11 @@ const AdminProfile = () => {
                 <CardTitle className="text-red-600 dark:text-red-400">Admin Actions</CardTitle>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900"
+                  onClick={handleLogout}
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>

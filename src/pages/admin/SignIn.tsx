@@ -1,45 +1,83 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { useRedirectIfAuthenticated } from "@/hooks/useAuthGuard";
+import { toast } from "sonner";
 
 const AdminSignIn = () => {
+  const navigate = useNavigate();
+  const { login, verifyLogin, isLoading, setLoading, getUserRole } = useAuthStore();
+  
+  // Redirect if already authenticated
+  useRedirectIfAuthenticated();
+  
   const [step, setStep] = useState<'credentials' | 'verification'>('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Simulate API call for admin login and sending verification code
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    setStep('verification');
+    try {
+      await login({
+        username: email,
+        password: password
+      });
+      
+      setStep('verification');
+      toast.success('Login successful! Please check your email for verification code.');
+    } catch (error) {
+      console.error('Error during login:', error);
+      toast.error('Login failed. Please check your credentials and try again.');
+    }
   };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    // Redirect to admin dashboard would happen here
-    console.log('Admin sign in successful');
+    try {
+      await verifyLogin({
+        username: email,
+        code: verificationCode
+      });
+      
+      // Check user role and navigate accordingly
+      const userRole = getUserRole();
+      
+      if (userRole === 'ADMIN') {
+        toast.success('Admin login successful! Redirecting to admin dashboard...');
+        navigate('/admin/dashboard');
+      } else if (userRole === 'EMPLOYEE') {
+        toast.success('Employee login successful! Redirecting to admin dashboard...');
+        navigate('/admin/dashboard');
+      } else {
+        toast.error('Access denied. Admin or Employee access required.');
+      }
+    } catch (error) {
+      console.error('Error during verification:', error);
+      toast.error('Verification failed. Please check your code and try again.');
+    }
   };
 
-  const handleResendCode = () => {
-    console.log('Resending admin verification code...');
+  const handleResendCode = async () => {
+    try {
+      // Resend verification code by calling login again
+      await login({
+        username: email,
+        password: password
+      });
+      toast.success('Verification code resent! Please check your email.');
+    } catch (error) {
+      console.error('Error resending code:', error);
+      toast.error('Failed to resend code. Please try again.');
+    }
   };
 
   return (
@@ -57,7 +95,7 @@ const AdminSignIn = () => {
             </CardTitle>
             <CardDescription className="text-gray-600">
               {step === 'credentials' 
-                ? 'Sign in to <span className="text-orange-500">Orbin</span> Admin Portal' 
+                ? 'Sign in to Orbin admin Portal' 
                 : `We've sent a 6-digit code to ${email}`
               }
             </CardDescription>
@@ -141,25 +179,55 @@ const AdminSignIn = () => {
                 </Button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 w-full text-center">
                 <label className="text-sm font-medium text-gray-900">
                   Admin Verification Code
                 </label>
-                <div className="flex justify-center">
-                  <InputOTP
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={setVerificationCode}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} className="border-red-200" />
-                      <InputOTPSlot index={1} className="border-red-200" />
-                      <InputOTPSlot index={2} className="border-red-200" />
-                      <InputOTPSlot index={3} className="border-red-200" />
-                      <InputOTPSlot index={4} className="border-red-200" />
-                      <InputOTPSlot index={5} className="border-red-200" />
-                    </InputOTPGroup>
-                  </InputOTP>
+                <div className="flex justify-center gap-2">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <Input
+                      key={index}
+                      type="text"
+                      maxLength={1}
+                      value={verificationCode[index] || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        if (value.length <= 1 && /^[0-9A-Z]*$/.test(value)) {
+                          const newCode = verificationCode.split('');
+                          newCode[index] = value;
+                          setVerificationCode(newCode.join(''));
+                          
+                          // Auto-focus next input
+                          if (value && index < 5) {
+                            const nextInput = document.getElementById(`admin-otp-${index + 1}`);
+                            nextInput?.focus();
+                          }
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Handle backspace
+                        if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
+                          const prevInput = document.getElementById(`admin-otp-${index - 1}`);
+                          prevInput?.focus();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pastedData = e.clipboardData.getData('text');
+                        const validChars = pastedData.replace(/[^0-9A-Za-z]/g, '').toUpperCase().slice(0, 6);
+                        if (validChars.length > 0) {
+                          setVerificationCode(validChars.padEnd(6, ''));
+                          // Focus the last filled input or the next empty one
+                          const nextIndex = Math.min(validChars.length, 5);
+                          const nextInput = document.getElementById(`admin-otp-${nextIndex}`);
+                          nextInput?.focus();
+                        }
+                      }}
+                      id={`admin-otp-${index}`}
+                      className="w-12 h-12 text-center text-lg font-semibold border-red-200"
+                      autoComplete="off"
+                    />
+                  ))}
                 </div>
               </div>
 

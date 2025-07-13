@@ -296,7 +296,7 @@ const SignUp = () => {
                 </Button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 w-full text-center">
                 <label className="text-sm font-medium text-gray-900">
                   Verification code
                 </label>

@@ -25,9 +25,13 @@ import {
   HelpCircle
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 
 const CustomerProfile = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: 'John',
@@ -77,6 +81,11 @@ const CustomerProfile = () => {
       ...prev,
       [setting]: value
     }));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
   };
 
   return (
@@ -410,7 +419,11 @@ const CustomerProfile = () => {
                   <Download className="w-4 h-4 mr-2" />
                   Download Data
                 </Button>
-                <Button variant="outline" className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900"
+                  onClick={handleLogout}
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>

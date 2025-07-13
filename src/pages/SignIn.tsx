@@ -55,17 +55,9 @@ const SignIn = () => {
       if (userRole === 'NONE') {
         toast.success('Account needs verification. Redirecting to KYC...');
         navigate('/kyc');
-      } else if (userRole === 'CUSTOMER') {
+      } else {
         toast.success('Welcome back! Redirecting to dashboard...');
         navigate('/customer/dashboard');
-      } else if (userRole === 'EMPLOYEE') {
-        toast.success('Employee login successful! Redirecting to admin dashboard...');
-        navigate('/admin/dashboard');
-      } else if (userRole === 'ADMIN') {
-        toast.success('Admin login successful! Redirecting to admin dashboard...');
-        navigate('/admin/dashboard');
-      } else {
-        toast.error('Unknown user role. Please contact support.');
       }
     } catch (error) {
       console.error('Error during verification:', error);
@@ -179,7 +171,7 @@ const SignIn = () => {
                 </Button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 w-full text-center">
                 <label className="text-sm font-medium text-gray-900">
                   Verification code
                 </label>
