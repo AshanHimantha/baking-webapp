@@ -523,21 +523,37 @@ const AdminApprovals = () => {
                             <p className="text-gray-600 dark:text-gray-400 mb-2">
                               Identity verification for {document.fullName}
                             </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
-                              <div>
-                                <span className="font-medium">ID:</span> {document.id}
-                              </div>
-                              <div>
-                                <span className="font-medium">Submitted:</span> {new Date(document.submittedAt).toLocaleDateString()}
-                              </div>
-                              <div>
-                                <span className="font-medium">Nationality:</span> {document.nationality}
-                              </div>
-                              <div>
-                                <span className="font-medium">ID Number:</span> {document.idNumber}
-                              </div>
-                              <div className="md:col-span-2">
-                                <span className="font-medium">Address:</span> {document.address}, {document.city}, {document.postalCode}, {document.country}
+                       <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 p-3 px-5  rounded-lg  border border-slate-200 dark:border-slate-600">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  <span className="font-medium text-blue-600 dark:text-blue-400">Document ID:</span> 
+                                  <span className="font-mono bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded text-blue-800 dark:text-blue-200">#{document.id}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Clock className="w-4 h-4 text-green-500" />
+                                  <span className="font-medium text-green-600 dark:text-green-400">Submitted:</span> 
+                                  <span className="text-gray-700 dark:text-gray-300">{new Date(document.submittedAt).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Flag className="w-4 h-4 text-purple-500" />
+                                  <span className="font-medium text-purple-600 dark:text-purple-400">Nationality:</span> 
+                                  <span className="text-gray-700 dark:text-gray-300">{document.nationality}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <IdCard className="w-4 h-4 text-orange-500" />
+                                  <span className="font-medium text-orange-600 dark:text-orange-400">ID Number:</span> 
+                                  <span className="font-mono bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded text-orange-800 dark:text-orange-200">{document.idNumber}</span>
+                                </div>
+                                <div className="md:col-span-2 flex items-start space-x-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+                                  <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                  <div>
+                                    <span className="font-medium text-red-600 dark:text-red-400">Address:</span> 
+                                    <span className="text-gray-700 dark:text-gray-300 ml-2">
+                                      {document.address}, {document.city}, {document.postalCode}, {document.country}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
