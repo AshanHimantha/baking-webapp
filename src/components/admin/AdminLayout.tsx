@@ -38,7 +38,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const { logout } = useAuthStore();
+  const { logout, getUser } = useAuthStore();
+
+  // Get user data from JWT
+  const user = getUser();
+  const adminName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Admin User' : 'Admin User';
+  const adminEmail = user?.email || 'admin@bank.com';
+  const adminInitials = user ? 
+    `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}`.toUpperCase() || 'AD' : 
+    'AD';
 
   const navigation = [
     { name: 'Overview', href: '/admin/dashboard', icon: BarChart3 },
@@ -114,14 +122,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <div className="flex items-center space-x-3">
               <Avatar className="w-10 h-10">
                 <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback className="bg-purple-600 text-white">AD</AvatarFallback>
+                <AvatarFallback className="bg-purple-600 text-white">{adminInitials}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  Admin User
+                  {adminName}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  admin@bank.com
+                  {adminEmail}
                 </p>
               </div>
             </div>
@@ -183,16 +191,16 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src="/placeholder.svg" alt="@admin" />
-                      <AvatarFallback className="bg-purple-600 text-white">AD</AvatarFallback>
+                      <AvatarFallback className="bg-purple-600 text-white">{adminInitials}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">Admin User</p>
+                      <p className="font-medium">{adminName}</p>
                       <p className="w-[200px] truncate text-sm text-muted-foreground">
-                        admin@bank.com
+                        {adminEmail}
                       </p>
                     </div>
                   </div>

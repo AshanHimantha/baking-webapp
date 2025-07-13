@@ -6,6 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { 
   Search, 
   Filter, 
   Download, 
@@ -42,6 +52,13 @@ const AdminCustomers = () => {
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
+  
+  // Confirmation modal states
+  const [showSuspendDialog, setShowSuspendDialog] = useState(false);
+  const [showReactivateDialog, setShowReactivateDialog] = useState(false);
+  const [userToSuspend, setUserToSuspend] = useState<User | null>(null);
+  const [userToReactivate, setUserToReactivate] = useState<User | null>(null);
+  
   const { toast } = useToast();
 
   const ITEMS_PER_PAGE = 20;
@@ -128,6 +145,36 @@ const AdminCustomers = () => {
         description: error.response?.data?.message || "Failed to reactivate user",
         variant: "destructive",
       });
+    }
+  };
+
+  // Handle suspend confirmation
+  const handleSuspendClick = (user: User) => {
+    setUserToSuspend(user);
+    setShowSuspendDialog(true);
+  };
+
+  // Handle reactivate confirmation
+  const handleReactivateClick = (user: User) => {
+    setUserToReactivate(user);
+    setShowReactivateDialog(true);
+  };
+
+  // Confirm suspend action
+  const confirmSuspend = async () => {
+    if (userToSuspend) {
+      await suspendUser(userToSuspend.username, "Manual suspension by admin");
+      setShowSuspendDialog(false);
+      setUserToSuspend(null);
+    }
+  };
+
+  // Confirm reactivate action
+  const confirmReactivate = async () => {
+    if (userToReactivate) {
+      await reactivateUser(userToReactivate.username);
+      setShowReactivateDialog(false);
+      setUserToReactivate(null);
     }
   };
 
@@ -224,8 +271,7 @@ const AdminCustomers = () => {
           </div>
         </div>
 
-      
-
+ 
         {/* Search and Stats */}
         <div className="grid lg:grid-cols-4 gap-6">
           <Card className="lg:col-span-3 shadow-banking">
@@ -338,7 +384,7 @@ const AdminCustomers = () => {
                         </p>
                       </div>
                       
-                      <div className="flex flex-col space-x-2 ">
+                      <div className="flex flex-col gap-2 ">
                         <Button 
                           variant="outline" 
                           size="sm" 
@@ -353,7 +399,7 @@ const AdminCustomers = () => {
                             variant="outline" 
                             size="sm" 
                             title="Reactivate User"
-                            onClick={() => reactivateUser(user.username)}
+                            onClick={() => handleReactivateClick(user)}
                             className="text-green-600 hover:text-green-700"
                           >
                             <CheckCircle className="w-4 h-4" />
@@ -363,7 +409,7 @@ const AdminCustomers = () => {
                             variant="outline" 
                             size="sm" 
                             title="Suspend User"
-                            onClick={() => suspendUser(user.username, "Manual suspension by admin")}
+                            onClick={() => handleSuspendClick(user)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <XCircle className="w-4 h-4" />
@@ -419,6 +465,66 @@ const AdminCustomers = () => {
           onSuspend={suspendUser}
           onReactivate={reactivateUser}
         />
+
+        {/* Suspend Confirmation Dialog */}
+        <AlertDialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Suspend User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to suspend user "{userToSuspend?.username}"? 
+                This action will immediately prevent them from accessing their account.
+                <br /><br />
+                <strong>User Details:</strong>
+                <br />
+                Name: {userToSuspend ? UserUtils.getFullName(userToSuspend) : ''}
+                <br />
+                Email: {userToSuspend?.email}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowSuspendDialog(false)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmSuspend}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Suspend User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Reactivate Confirmation Dialog */}
+        <AlertDialog open={showReactivateDialog} onOpenChange={setShowReactivateDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reactivate User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to reactivate user "{userToReactivate?.username}"? 
+                This action will restore their access to the account.
+                <br /><br />
+                <strong>User Details:</strong>
+                <br />
+                Name: {userToReactivate ? UserUtils.getFullName(userToReactivate) : ''}
+                <br />
+                Email: {userToReactivate?.email}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowReactivateDialog(false)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmReactivate}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Reactivate User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );

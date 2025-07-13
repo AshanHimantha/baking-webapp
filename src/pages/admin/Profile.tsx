@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import AvatarUpload from "@/components/ui/AvatarUpload";
 import { 
   User, 
   Shield, 
@@ -15,24 +16,35 @@ import {
   LogOut,
   Settings,
   Users,
-  Key
+  Key,
+  Loader2
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { ProfileAPI, ProfileUpdateDTO, ProfileUtils, UserProfileData } from "@/lib/profileApi";
 
 const AdminProfile = () => {
   const navigate = useNavigate();
-  const { logout } = useAuthStore();
+  const { logout, getUser, isAuthenticated } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Get user data directly from auth store as fallback
+  const user = getUser();
+  
   const [formData, setFormData] = useState({
-    firstName: 'Admin',
-    lastName: 'User',
-    email: 'admin@bank.com',
-    phone: '+1 (555) 999-0000',
-    role: 'Super Administrator'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    role: ''
   });
+
+  const [profileData, setProfileData] = useState<UserProfileData | null>(null);
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const [security, setSecurity] = useState({
     twoFactor: true,
@@ -40,9 +52,154 @@ const AdminProfile = () => {
     auditLogging: true
   });
 
-  const handleSave = () => {
-    toast.success("Profile updated successfully!");
-    setIsEditing(false);
+  // Helper functions
+  const getDisplayName = () => {
+    if (!user) return 'Unknown User';
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || user.sub;
+  };
+
+  const getInitials = () => {
+    if (!user) return 'U';
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    return `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U';
+  };
+
+  const getRoleName = () => {
+    if (!user || !user.roles || user.roles.length === 0) return 'User';
+    const role = user.roles[0];
+    switch (role) {
+      case 'ADMIN':
+        return 'Administrator';
+      case 'EMPLOYEE':
+        return 'Employee';
+      case 'CUSTOMER':
+        return 'Customer';
+      default:
+        return 'User';
+    }
+  };
+
+  // Show loading if not authenticated
+  if (!isAuthenticated()) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  // Update form data when user changes
+  useEffect(() => {
+    try {
+      if (user) {
+        setFormData({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          phoneNumber: '', // This might come from a separate profile API call
+          role: getRoleName()
+        });
+      }
+    } catch (error) {
+      console.error('Error updating form data:', error);
+    }
+  }, [user]);
+
+  // Load profile picture on component mount
+  useEffect(() => {
+    loadFullProfile();
+  }, []);
+
+  // Load profile picture after profile data is loaded
+  useEffect(() => {
+    if (profileData && !avatarUrl) {
+      loadProfilePicture();
+    }
+  }, [profileData]);
+
+  const loadFullProfile = async () => {
+    try {
+      const response = await ProfileAPI.getProfile();
+      if (response.success && response.data) {
+        setProfileData(response.data);
+        
+        // Update form data with profile information
+        setFormData(prev => ({
+          ...prev,
+          firstName: response.data.firstName || '',
+          lastName: response.data.lastName || '',
+          email: response.data.email || '',
+          phoneNumber: response.data.phoneNumber || '',
+          role: getRoleName()
+        }));
+
+        // Set avatar URL if available
+        if (response.data.hasAvatar && response.data.avatarUrl) {
+          setAvatarUrl(ProfileUtils.getFullAvatarUrl(response.data.avatarUrl));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      toast.error('Failed to load profile data');
+    }
+  };
+
+  const loadProfilePicture = async () => {
+    try {
+      // Try to get profile picture from separate endpoint if not loaded from main profile
+      if (!avatarUrl) {
+        const response = await ProfileAPI.getProfilePicture();
+        if (response.success) {
+          const avatarUrl = ProfileUtils.getAvatarUrl(response);
+          if (avatarUrl) {
+            setAvatarUrl(avatarUrl);
+          }
+        }
+      }
+    } catch (error) {
+      // Profile picture not found or error - that's okay
+      console.log('No profile picture found or error loading avatar');
+    }
+  };
+
+  const handleSave = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      // Validate form data
+      const profileData: ProfileUpdateDTO = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phoneNumber: formData.phoneNumber.trim()
+      };
+
+      const validation = ProfileUtils.validateProfileData(profileData);
+      if (!validation.isValid) {
+        validation.errors.forEach(error => toast.error(error));
+        return;
+      }
+
+      // Update profile
+      const response = await ProfileAPI.updateProfile(profileData);
+      
+      if (response.message || response.success !== false) {
+        toast.success(response.message || "Profile updated successfully!");
+        setIsEditing(false);
+      } else {
+        toast.error("Failed to update profile");
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to update profile';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -95,20 +252,30 @@ const AdminProfile = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center space-x-4 mb-6">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback className="bg-purple-600 text-white text-xl">
-                      {formData.firstName[0]}{formData.lastName[0]}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AvatarUpload
+                    avatarUrl={avatarUrl}
+                    onAvatarChange={setAvatarUrl}
+                    userInitials={getInitials()}
+                    size="md"
+                  />
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {formData.firstName} {formData.lastName}
+                      {getDisplayName()}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">{formData.email}</p>
-                    <Badge variant="default" className="mt-1 bg-purple-600">
-                      {formData.role}
-                    </Badge>
+                    {profileData?.username && (
+                      <p className="text-sm text-gray-500 dark:text-gray-500">@{profileData.username}</p>
+                    )}
+                    <div className="flex gap-2 mt-1">
+                      <Badge variant="default" className="bg-purple-600">
+                        {formData.role}
+                      </Badge>
+                      {profileData?.kycStatus === 'VERIFIED' && (
+                        <Badge variant="outline" className="border-green-500 text-green-600">
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -142,11 +309,11 @@ const AdminProfile = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
                     <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      id="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                       disabled={!isEditing}
                     />
                   </div>
@@ -154,10 +321,25 @@ const AdminProfile = () => {
 
                 {isEditing && (
                   <div className="flex space-x-2 pt-4">
-                    <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-                      Save Changes
+                    <Button 
+                      onClick={handleSave} 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
                     </Button>
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsEditing(false)}
+                      disabled={isLoading}
+                    >
                       Cancel
                     </Button>
                   </div>
@@ -236,20 +418,50 @@ const AdminProfile = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Account Status</span>
-                    <Badge variant="default" className="bg-green-500">Active</Badge>
+                    <Badge variant="default" className={profileData?.status === 'ACTIVE' ? "bg-green-500" : "bg-red-500"}>
+                      {profileData?.status || 'Unknown'}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Role</span>
-                    <Badge variant="outline">Super Admin</Badge>
+                    <Badge variant="outline" className="border-purple-400 text-purple-600">
+                      {formData.role}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Last Login</span>
-                    <span className="text-sm text-gray-500">Today 09:15 AM</span>
+                    <span className="text-sm text-gray-500">
+                      {profileData?.lastLoginDate ? 
+                        new Date(profileData.lastLoginDate).toLocaleString() : 
+                        'Never'
+                      }
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Access Level</span>
-                    <Badge variant="default" className="bg-purple-500">Full Access</Badge>
+                    <span className="text-sm">Account Level</span>
+                    <Badge variant="default" className={`${
+                      profileData?.accountLevel === 'BRONZE' ? 'bg-orange-500' :
+                      profileData?.accountLevel === 'SILVER' ? 'bg-gray-500' :
+                      profileData?.accountLevel === 'GOLD' ? 'bg-yellow-500' :
+                      'bg-purple-500'
+                    }`}>
+                      {profileData?.accountLevel || 'Admin'}
+                    </Badge>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Email Verified</span>
+                    <Badge variant="default" className={profileData?.emailVerified ? "bg-green-500" : "bg-yellow-500"}>
+                      {profileData?.emailVerified ? 'Verified' : 'Pending'}
+                    </Badge>
+                  </div>
+                  {profileData?.registeredDate && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Member Since</span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(profileData.registeredDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
