@@ -4,8 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import { Building2, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Building2, ArrowLeft, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRedirectIfAuthenticated } from "@/hooks/useAuthGuard";
 import { toast } from "sonner";
@@ -22,9 +23,45 @@ const SignIn = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
+  const [accountStatus, setAccountStatus] = useState<string | null>(null);
+
+  // Helper function to get status-specific messages
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case 'INACTIVE':
+        return {
+          title: 'Account Inactive',
+          description: 'Your account is currently inactive. Please contact support to activate your account.',
+          variant: 'destructive' as const
+        };
+      case 'SUSPENDED':
+        return {
+          title: 'Account Suspended',
+          description: 'Your account has been suspended. Please contact support for assistance.',
+          variant: 'destructive' as const
+        };
+      case 'DEACTIVATED':
+        return {
+          title: 'Account Deactivated',
+          description: 'Your account has been deactivated. Please contact support to reactivate your account.',
+          variant: 'destructive' as const
+        };
+      default:
+        return null;
+    }
+  };
+
+  // Helper function to parse error response
+  const parseErrorResponse = (error: any) => {
+    if (error.response?.status === 403 && error.response?.data?.error) {
+      return error.response.data.error;
+    }
+    return null;
+  };
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAccountStatus(null); // Clear any previous status
     
     try {
       await login({
@@ -36,12 +73,20 @@ const SignIn = () => {
       toast.success('Login successful! Please check your email for verification code.');
     } catch (error) {
       console.error('Error during login:', error);
-      toast.error('Login failed. Please check your credentials and try again.');
+      
+      // Check if it's a 403 error with specific status
+      const errorStatus = parseErrorResponse(error);
+      if (errorStatus && ['INACTIVE', 'SUSPENDED', 'DEACTIVATED'].includes(errorStatus)) {
+        setAccountStatus(errorStatus);
+      } else {
+        toast.error('Login failed. Please check your credentials and try again.');
+      }
     }
   };
 
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAccountStatus(null); // Clear any previous status
     
     try {
       await verifyLogin({
@@ -61,11 +106,20 @@ const SignIn = () => {
       }
     } catch (error) {
       console.error('Error during verification:', error);
-      toast.error('Verification failed. Please check your code and try again.');
+      
+      // Check if it's a 403 error with specific status
+      const errorStatus = parseErrorResponse(error);
+      if (errorStatus && ['INACTIVE', 'SUSPENDED', 'DEACTIVATED'].includes(errorStatus)) {
+        setAccountStatus(errorStatus);
+      } else {
+        toast.error('Verification failed. Please check your code and try again.');
+      }
     }
   };
 
   const handleResendCode = async () => {
+    setAccountStatus(null); // Clear any previous status
+    
     try {
       // Resend verification code by calling login again
       await login({
@@ -75,7 +129,14 @@ const SignIn = () => {
       toast.success('Verification code resent! Please check your email.');
     } catch (error) {
       console.error('Error resending code:', error);
-      toast.error('Failed to resend code. Please try again.');
+      
+      // Check if it's a 403 error with specific status
+      const errorStatus = parseErrorResponse(error);
+      if (errorStatus && ['INACTIVE', 'SUSPENDED', 'DEACTIVATED'].includes(errorStatus)) {
+        setAccountStatus(errorStatus);
+      } else {
+        toast.error('Failed to resend code. Please try again.');
+      }
     }
   };
 
@@ -102,6 +163,27 @@ const SignIn = () => {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Account Status Alert */}
+          {accountStatus && (
+            <Alert variant={getStatusMessage(accountStatus)?.variant || 'destructive'}>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="space-y-2">
+                <div className="font-medium">
+                  {getStatusMessage(accountStatus)?.title}
+                </div>
+                <div>
+                  {getStatusMessage(accountStatus)?.description}
+                </div>
+                <div className="text-sm">
+                  Need help? Contact support at{' '}
+                  <a href="mailto:support@orbin.com" className="text-banking-primary hover:underline">
+                    orbin@ashanhimantha.com
+                  </a>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {step === 'credentials' ? (
             <form onSubmit={handleCredentialsSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -152,7 +234,7 @@ const SignIn = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-banking-primary hover:bg-banking-primaryDark text-white"
-                disabled={isLoading}
+                disabled={isLoading || accountStatus !== null}
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -163,7 +245,10 @@ const SignIn = () => {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setStep('credentials')}
+                  onClick={() => {
+                    setStep('credentials');
+                    setAccountStatus(null); // Clear status when going back
+                  }}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -228,6 +313,7 @@ const SignIn = () => {
                 variant="ghost"
                 onClick={handleResendCode}
                 className="w-full text-banking-primary hover:text-banking-primaryDark"
+                disabled={isLoading || accountStatus !== null}
               >
                 Didn't receive a code? Resend
               </Button>
@@ -235,7 +321,7 @@ const SignIn = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-banking-primary hover:bg-banking-primaryDark text-white"
-                disabled={isLoading || verificationCode.length !== 6}
+                disabled={isLoading || verificationCode.length !== 6 || accountStatus !== null}
               >
                 {isLoading ? 'Verifying...' : 'Verify & Sign In'}
               </Button>

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import KYCOnlyRoute from "@/components/KYCOnlyRoute";
 import Index from "./pages/Index";
@@ -82,7 +83,9 @@ const App = () => (
             } />
             <Route path="/admin/customers" element={
               <ProtectedRoute requiredRole="ADMIN">
-                <AdminCustomers />
+                <ErrorBoundary>
+                  <AdminCustomers />
+                </ErrorBoundary>
               </ProtectedRoute>
             } />
             <Route path="/admin/transactions" element={
