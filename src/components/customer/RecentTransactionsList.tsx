@@ -50,12 +50,13 @@ const formatTransactionDate = (dateString: string) => {
 const getTransactionTypeIcon = (type: string) => {
     switch (type) {
         case "TRANSFER":
-            return <Send className="w-5 h-5 text-gray-500" />;
+            return <Send className="w-5 h-5 text-green-500" />;
         case "BILL_PAYMENT":
-            return <Receipt className="w-5 h-5 text-gray-500" />;
+            return <Receipt className="w-5 h-5 text-yellow-500" />;
         case "DEPOSIT":
+            return <Banknote className="w-5 h-5 text-blue-500" />;
         case "WITHDRAWAL":
-            return <Banknote className="w-5 h-5 text-gray-500" />;
+            return <Banknote className="w-5 h-5 text-red-500" />;
         default:
             return <Banknote className="w-5 h-5 text-gray-500" />; // Fallback
     }
@@ -70,12 +71,10 @@ const RecentTransactionsList: React.FC<RecentTransactionsListProps> = ({
 
   return (
     <Card className="shadow-banking">
-      <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-      </CardHeader>
-      <CardContent>
+
+      <CardContent className='mt-5'>
         {transactions.length > 0 ? (
-          <div className="space-y-3">
+          <div >
             {transactions.map((tx) => {
               // Determine if the transaction is outgoing from one of the user's accounts
               const isOutgoing = userAccountNumbers.includes(tx.fromAccountNumber);
@@ -91,7 +90,7 @@ const RecentTransactionsList: React.FC<RecentTransactionsListProps> = ({
                   className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <Avatar className="w-10 h-10 bg-gray-100 dark:bg-gray-800 border">
+                    <Avatar className="w-10 h-10 bg-gray-100 dark:bg-gray-800 border flex items-center justify-center">
                         {getTransactionTypeIcon(tx.transactionType)}
                     </Avatar>
                     <div>

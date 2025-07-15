@@ -69,9 +69,7 @@ const TransferDetailsCard: React.FC<TransferDetailsCardProps> = ({
           selectedAccount={fromAccount}
           onAccountChange={setFromAccount}
         />
-        <span className="text-sm text-gray-500">
-          {fromAccount}
-        </span>
+
 
         <RecipientSearchAndDisplay
           recipient={recipient}
