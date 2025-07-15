@@ -33,10 +33,11 @@ const TransferFromAccountSelect: React.FC<TransferFromAccountSelectProps> = ({
           {accounts.map((account) => (
             <SelectItem key={account.accountNumber} value={account.accountNumber}>
               <div className="flex items-center gap-2 font-medium">
-                <AccountTypeBadge type={account.type} showText={true} /> {/* Only show icon here */}
+               
                 <span>
-                  {account.name} ({account.accountNumber}) - ${account.balance.toFixed(2)}
+                  {account.name} ({account.accountNumber}) - ${account.balance.toFixed(2)} 
                 </span>
+                 <AccountTypeBadge type={account.accountType} showText={true} /> {/* Only show icon here */}
               </div>
             </SelectItem>
           ))}

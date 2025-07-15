@@ -75,7 +75,7 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
         <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
           {isRecurring
             ? "Recurring transfer will start on the selected date"
-            : "Transfer will be processed instantly. You can cancel within 30 seconds."}
+            : "Transfer will be processed instantly."}
         </p>
       </CardContent>
     </Card>
