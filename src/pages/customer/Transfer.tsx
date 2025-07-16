@@ -47,27 +47,29 @@ const CustomerTransfer = () => {
   const [toOwnAccount, setToOwnAccount] = useState<string>(""); // For 'ownAccount'
   const [biller, setBiller] = useState<any | null>(null); // For 'billPayment' (e.g., { id: 'billerId123', name: 'Utility Company' })
 
+const fetchDashboardData = async () => {
+  setIsPageLoading(true); 
+  try {
+    const response = await apiClient.get('/api/dashboard');
+    const { accounts: fetchedAccounts, recentTransactions: fetchedTransactions } = response.data;
 
-  // Fetch dashboard data on mount (accounts for 'from account' dropdown)
+    setAccounts(fetchedAccounts || []);
+    setRecentTransactions(fetchedTransactions || []);
+
+    if (fetchedAccounts && fetchedAccounts.length > 0 &&
+        (!fromAccount || !fetchedAccounts.some(acc => acc.accountNumber === fromAccount))) {
+      setFromAccount(fetchedAccounts[0].accountNumber);
+    }
+  } catch (error) {
+    console.error("Failed to fetch dashboard data:", error);
+    toast.error("Could not load your dashboard. Please try again later.");
+  } finally {
+    setIsPageLoading(false);
+  }
+};
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await apiClient.get('/api/dashboard');
-        const { accounts: fetchedAccounts, recentTransactions: fetchedTransactions } = response.data;
-
-        setAccounts(fetchedAccounts || []);
-        setRecentTransactions(fetchedTransactions || []);
-
-        if (fetchedAccounts && fetchedAccounts.length > 0) {
-          setFromAccount(fetchedAccounts[0].accountNumber);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-        toast.error("Could not load your dashboard. Please try again later.");
-      } finally {
-        setIsPageLoading(false);
-      }
-    };
+    
     fetchDashboardData();
   
   }, []);
@@ -184,7 +186,7 @@ const CustomerTransfer = () => {
 
       await apiClient.post(endpoint, body);
       toast.success(successMessage);
-
+      fetchDashboardData(); 
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);

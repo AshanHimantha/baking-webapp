@@ -49,7 +49,7 @@ const TransferSuccessConfirmation: React.FC<TransferSuccessConfirmationProps> = 
   }
 
   return (
-    <Card className="shadow-lg max-w-lg mx-auto mt-10">
+    <Card className="shadow-sm max-w-lg mx-auto mt-10 animate-fade-in">
       <CardHeader>
         <CardTitle className="flex items-center text-green-600">
           <CheckCircleIcon className="h-6 w-6 mr-2" />

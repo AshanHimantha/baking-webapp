@@ -140,10 +140,10 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed  inset-y-0 left-0 z-50 w-64  border-r  border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
+      <div className={`fixed  inset-y-0 left-0 z-50 w-64  border-r   border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex items-center justify-between  h-16 px-4 lg:px-6 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between  h-16 px-4 lg:px-6 border-b border-border flex-shrink-0 ">
           <div className="flex items-center ">
             <img src="/orbinw.png" alt="Logo" className="h-10 " />
           </div>
@@ -205,7 +205,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-blue-100/20">
+      <div className="flex-1 flex flex-col min-w-0 bg-blue-100/20 ">
         {/* Top navigation */}
         <div className="sticky top-0 z-30 bg-card/95 backdrop-blur-sm border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between h-14 lg:h-16 px-4 lg:px-6">
@@ -293,13 +293,13 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 overflow-y-auto animate-fade-in">
           {children}
         </main>
       </div>
 
       {/* Mobile bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border lg:hidden z-40 pb-safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border lg:hidden z-40 pb-safe-bottom bg-white">
         <div className="grid grid-cols-5 gap-1 px-2 py-2">
           {navigation.map((item) => {
             const Icon = item.icon;
