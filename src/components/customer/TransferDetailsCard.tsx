@@ -64,7 +64,9 @@ const TransferDetailsCard: React.FC<TransferDetailsCardProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+
         <TransferFromAccountSelect
+          label="From Account"
           accounts={accounts}
           selectedAccount={fromAccount}
           onAccountChange={setFromAccount}

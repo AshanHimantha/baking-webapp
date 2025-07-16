@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,96 +26,119 @@ import AdminReports from "./pages/admin/Reports";
 import AdminProfile from "./pages/admin/Profile";
 import NotFound from "./pages/NotFound";
 
+import { useEffect } from "react"; // <--- IMPORT useEffect
+import { useUserStore } from "@/store/userStore"; // <--- IMPORT YOUR STORE
+
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="banking-ui-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route
-              path="/kyc"
-              element={
-                <KYCOnlyRoute>
-                  <KYC />
-                </KYCOnlyRoute>
-              }
-            />
-            <Route path="/admin/signin" element={<AdminSignIn />} />
-            
-            {/* Customer Banking Routes */}
-            <Route path="/customer/dashboard" element={
-              <ProtectedRoute requiredRole="CUSTOMER">
-                <CustomerDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/customer/transactions" element={
-              <ProtectedRoute requiredRole="CUSTOMER">
-                <CustomerTransactions />
-              </ProtectedRoute>
-            } />
-            <Route path="/customer/transfer" element={
-              <ProtectedRoute requiredRole="CUSTOMER">
-                <CustomerTransfer />
-              </ProtectedRoute>
-            } />
-            <Route path="/customer/cards" element={
-              <ProtectedRoute requiredRole="CUSTOMER">
-                <CustomerCards />
-              </ProtectedRoute>
-            } />
-            <Route path="/customer/profile" element={
-              <ProtectedRoute requiredRole="CUSTOMER">
-                <CustomerProfile />
-              </ProtectedRoute>
-            } />
-            
-            {/* Admin Dashboard Routes */}
-            <Route path="/admin/dashboard" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/customers" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <ErrorBoundary>
-                  <AdminCustomers />
-                </ErrorBoundary>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/transactions" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <AdminTransactions />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/approvals" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <AdminApprovals />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/reports" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <AdminReports />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/profile" element={
-              <ProtectedRoute requiredRole="ADMIN">
-                <AdminProfile />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => { // <--- Make sure App is a functional component
+  const fetchUserProfile = useUserStore((state) => state.fetchUserProfile);
+
+  useEffect(() => {
+
+    fetchUserProfile();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'auth_token') {
+        fetchUserProfile();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [fetchUserProfile]); // Dependency array: ensures it runs on mount
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="banking-ui-theme">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route
+                path="/kyc"
+                element={
+                  <KYCOnlyRoute>
+                    <KYC />
+                  </KYCOnlyRoute>
+                }
+              />
+              <Route path="/admin/signin" element={<AdminSignIn />} />
+              
+              {/* Customer Banking Routes */}
+              <Route path="/customer/dashboard" element={
+                <ProtectedRoute requiredRole="CUSTOMER">
+                  <CustomerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/customer/transactions" element={
+                <ProtectedRoute requiredRole="CUSTOMER">
+                  <CustomerTransactions />
+                </ProtectedRoute>
+              } />
+              <Route path="/customer/transfer" element={
+                <ProtectedRoute requiredRole="CUSTOMER">
+                  <CustomerTransfer />
+                </ProtectedRoute>
+              } />
+              <Route path="/customer/cards" element={
+                <ProtectedRoute requiredRole="CUSTOMER">
+                  <CustomerCards />
+                </ProtectedRoute>
+              } />
+              <Route path="/customer/profile" element={
+                <ProtectedRoute requiredRole="CUSTOMER">
+                  <CustomerProfile />
+                </ProtectedRoute>
+              } />
+              
+              {/* Admin Dashboard Routes */}
+              <Route path="/admin/dashboard" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/customers" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <ErrorBoundary>
+                    <AdminCustomers />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/transactions" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminTransactions />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/approvals" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminApprovals />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/reports" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminReports />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/profile" element={
+                <ProtectedRoute requiredRole="ADMIN">
+                  <AdminProfile />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

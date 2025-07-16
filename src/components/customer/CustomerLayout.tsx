@@ -1,22 +1,22 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Add useEffect
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Bell, 
-  Home, 
-  ArrowLeftRight, 
-  CreditCard, 
-  User, 
-  Receipt, 
-  Menu, 
+import {
+  Bell,
+  Home,
+  ArrowLeftRight,
+  CreditCard,
+  User,
+  Receipt,
+  Menu,
   X,
   Sun,
   Moon,
   LogOut,
   Building2,
-  Settings
+  Settings,
+  Loader2 // Import Loader2 for loading spinner
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useAuthStore } from "@/store/authStore";
@@ -27,6 +27,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserStore } from '@/store/userStore'; // Import your user store
+import { toast } from 'sonner'; // Import toast for error notifications
 
 interface CustomerLayoutProps {
   children: React.ReactNode;
@@ -37,20 +39,45 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const { getUserRole, getUser, logout } = useAuthStore();
 
-  const userRole = getUserRole();
-  const user = getUser();
-  const isAdminOrEmployee = userRole === 'ADMIN' || userRole === 'EMPLOYEE';
+  // Use useAuthStore for authentication actions (logout, initial role check for ProtectedRoute)
+  const { logout } = useAuthStore();
 
-  // Extract user display information
-  const userName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user?.firstName || user?.lastName || 'User';
-  const userEmail = user?.email || 'user@example.com';
-  const userInitials = user?.firstName && user?.lastName 
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : userName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+  // Use useUserStore for detailed user profile data
+  const { userProfile, isLoading, error, fetchUserProfile } = useUserStore();
+
+  // Re-fetch profile if it's null, or on mount (though App.tsx handles initial fetch)
+  // This useEffect ensures that if CustomerLayout is accessed directly without
+  // App.tsx having finished loading the profile, it attempts to load it.
+  // Although App.tsx should ideally ensure profile is loaded before ProtectedRoute passes.
+  // This is a safety net.
+  useEffect(() => {
+    if (!userProfile && !isLoading) { // Only fetch if no profile and not already loading
+      fetchUserProfile();
+    }
+    if (error) {
+      toast.error(error); // Show error from store
+    }
+  }, [userProfile, isLoading, error, fetchUserProfile]);
+
+
+  // --- Derived values from userProfile, with fallbacks ---
+  const displayUserName = userProfile?.firstName && userProfile?.lastName
+    ? `${userProfile.firstName} ${userProfile.lastName}`
+    : userProfile?.username || 'Guest User'; // Fallback to username or 'Guest'
+  const displayUserEmail = userProfile?.email || 'guest@example.com';
+  const displayUserInitials = userProfile?.firstName && userProfile?.lastName
+    ? `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase()
+    : displayUserName.split(' ').map(n => n[0]).join('').toUpperCase() || 'GU'; // Handle single name or no name
+
+  const displayAvatarUrl = userProfile?.avatarUrl
+    ? import.meta.env.VITE_API_BASE_URL + userProfile.avatarUrl
+    : undefined; // AvatarImage handles undefined better than an invalid string
+
+  // Determine if user has ADMIN or EMPLOYEE role from userProfile
+  const isAdminOrEmployee = userProfile?.roles?.includes('ADMIN') || userProfile?.roles?.includes('EMPLOYEE');
+
+  // --- End Derived values ---
 
   const navigation = [
     { name: 'Dashboard', href: '/customer/dashboard', icon: Home },
@@ -67,11 +94,46 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
     navigate('/signin');
   };
 
+  // --- Loading and Error states for the layout ---
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-banking-primary" />
+        <p className="ml-2 text-gray-600">Loading user profile...</p>
+      </div>
+    );
+  }
+
+  // If there's an error and no profile, you might want to redirect or show a specific message
+  if (error && !userProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 text-center">
+        <h2 className="text-xl font-bold text-destructive mb-2">Error Loading Profile</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <Button onClick={() => navigate('/signin')}>Go to Sign In</Button>
+      </div>
+    );
+  }
+
+  // If userProfile is still null despite not being in loading/error state
+  // (e.g., if token invalid and profile was cleared, but ProtectedRoute didn't catch it yet)
+  if (!userProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 text-center">
+        <h2 className="text-xl font-bold text-gray-700 mb-2">No Profile Data</h2>
+        <p className="text-gray-600 mb-4">You might not be logged in or your session has expired.</p>
+        <Button onClick={() => navigate('/signin')}>Sign In</Button>
+      </div>
+    );
+  }
+  // --- End Loading and Error states ---
+
+
   return (
-    <div className="h-screen  flex bg-background font-geist overflow-hidden ">
+    <div className="h-screen flex bg-background font-geist overflow-hidden ">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -119,19 +181,22 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
         </nav>
 
         {/* User info at bottom of sidebar */}
-        <div className="p-3 lg:p-6 border-t border-border flex-shrink-0 ">
-          <div className="bg-muted rounded-xl p-3 lg:p-4">
+        <div className="p-3 lg:p-3 border-t border-border flex-shrink-0 ">
+          <div className="bg-muted rounded-md p-3 lg:p-4">
             <div className="flex items-center space-x-3">
               <Avatar className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback className="bg-banking-primary text-white text-sm lg:text-base">{userInitials}</AvatarFallback>
+                {userProfile?.hasAvatar && displayAvatarUrl ? (
+                  <AvatarImage src={displayAvatarUrl} alt={`@${displayUserName.toLowerCase().replace(' ', '')}`} />
+                ) : (
+                  <AvatarFallback className="bg-banking-primary text-white text-sm lg:text-base">{displayUserInitials}</AvatarFallback>
+                )}
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">
-                  {userName}
+                  {displayUserName}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {userEmail}
+                  {displayUserEmail}
                 </p>
               </div>
             </div>
@@ -169,7 +234,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 {theme === "light" ? (
                   <Moon className="w-4 h-4 lg:w-5 lg:h-5" />
                 ) : (
-                  <Sun className="w-4 h-4 lg:w-5 lg:h-5" />
+                  <Sun className="w-4 h-4 lg:w-5 h-5" />
                 )}
               </Button>
 
@@ -184,17 +249,20 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 lg:h-9 lg:w-9 rounded-full p-0">
                     <Avatar className="h-8 w-8 lg:h-9 lg:w-9">
-                      <AvatarImage src="/placeholder.svg" alt={`@${userName.toLowerCase().replace(' ', '')}`} />
-                      <AvatarFallback className="bg-banking-primary text-white text-sm">{userInitials}</AvatarFallback>
+                      {userProfile?.hasAvatar && displayAvatarUrl ? (
+                        <AvatarImage src={displayAvatarUrl} alt={`@${displayUserName.toLowerCase().replace(' ', '')}`} />
+                      ) : (
+                        <AvatarFallback className="bg-banking-primary text-white text-sm">{displayUserInitials}</AvatarFallback>
+                      )}
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48 lg:w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-sm">{userName}</p>
+                      <p className="font-medium text-sm">{displayUserName}</p>
                       <p className="w-[180px] lg:w-[200px] truncate text-xs text-muted-foreground">
-                        {userEmail}
+                        {displayUserEmail}
                       </p>
                     </div>
                   </div>
@@ -205,7 +273,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  {isAdminOrEmployee && (
+                  {isAdminOrEmployee && ( // Conditionally render based on isAdminOrEmployee
                     <DropdownMenuItem asChild>
                       <Link to="/admin/dashboard" className="cursor-pointer text-sm">
                         <Settings className="mr-2 h-4 w-4" />

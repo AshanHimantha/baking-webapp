@@ -1,4 +1,4 @@
-// src/components/customer/TransferFromAccountSelect.tsx
+
 import React from "react";
 import { Label } from "@/components/ui/label";
 import {
@@ -21,10 +21,13 @@ const TransferFromAccountSelect: React.FC<TransferFromAccountSelectProps> = ({
   accounts,
   selectedAccount,
   onAccountChange,
+  label 
 }) => {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="fromAccount">From Account</Label>
+    <div className="space-y-2"> 
+      <Label htmlFor="fromAccount" className="text-sm font-medium -mb-5">
+        {label}
+      </Label>
       <Select value={selectedAccount} onValueChange={onAccountChange}>
         <SelectTrigger id="fromAccount">
           <SelectValue placeholder="Select an account to send from..." />

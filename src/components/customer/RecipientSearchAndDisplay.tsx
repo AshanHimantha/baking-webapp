@@ -8,6 +8,7 @@ import { Search, AtSign, User, Hash } from "lucide-react";
 import AccountTypeBadge from "@/components/common/AccountTypeBadge";
 import apiClient from "@/lib/apiClient"; // Keep apiClient here as it's for search
 import { toast } from "sonner"; // For internal search errors
+import { useUserStore } from '@/store/userStore';
 
 interface RecipientSearchAndDisplayProps {
   recipient: any | null;
@@ -27,6 +28,7 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const userProfile = useUserStore((state) => state.userProfile);
 
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -125,7 +127,7 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
                   <div className="p-3 text-center text-gray-500 text-sm">No users found</div>
                 ) : (
                   searchResults
-                    .filter((user) => user.accountType !== "BILLER")
+                    .filter((user) => user.accountType !== "BILLER" && user.email !== userProfile.email )
                     .map((user) => (
                       <button
                         key={user.accountNumber}
