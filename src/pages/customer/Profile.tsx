@@ -23,7 +23,8 @@ import {
   Settings,
   CreditCard,
   HelpCircle,
-  Loader2
+  Loader2,
+  BadgeCheck
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -275,23 +276,14 @@ const CustomerProfile = () => {
                     size="md"
                   />
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {getDisplayName()}
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                      {getDisplayName()} <BadgeCheck color="#00ff40" strokeWidth={2} className="h-5 w-5  fill-green-100 ml-2" />
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400">{formData.email}</p>
+                    <p className="text-gray-600 dark:text-gray-400">{formData.email} </p>
                     {profileData?.username && (
                       <p className="text-sm text-gray-500 dark:text-gray-500">@{profileData.username}</p>
                     )}
-                    <div className="flex gap-2 mt-1">
-                      <Badge variant="default" className="bg-green-500">
-                        {profileData?.emailVerified ? 'Verified Account' : 'Unverified'}
-                      </Badge>
-                      {profileData?.kycStatus === 'VERIFIED' && (
-                        <Badge variant="outline" className="border-green-500 text-green-600">
-                          KYC Verified
-                        </Badge>
-                      )}
-                    </div>
+                   
                   </div>
                 </div>
 

@@ -1,16 +1,24 @@
+// src/components/customer/TransferSummaryCard.tsx
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
+// Add Biller interface if not already defined here, or import it
+interface Biller {
+  billerName: string;
+  category: string; // Or specific enum
+  id: number;
+  logoUrl: string | null;
+  status: string;
+}
 
 interface TransferSummaryCardProps {
   amount: string;
   isRecurring: boolean;
   frequency: string;
-  // NEW PROPS FOR TRANSFER TYPES
   transferType: 'withinBank' | 'ownAccount' | 'billPayment';
-  recipient?: any | null; // Optional for withinBank
-  toOwnAccount?: string | null; // Optional for ownAccount
-  biller?: { id: string; name: string } | null; // Optional for billPayment
-  // END NEW PROPS
+  recipient?: any | null;
+  toOwnAccount?: string | null;
+  biller?: Biller | null; // Use the Biller interface
   onTransfer: () => void;
   isTransferDisabled: boolean;
 }
@@ -19,10 +27,10 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
   amount,
   isRecurring,
   frequency,
-  transferType, // Destructure new prop
-  recipient, // Destructure new prop
-  toOwnAccount, // Destructure new prop
-  biller, // Destructure new prop
+  transferType,
+  recipient,
+  toOwnAccount,
+  biller,
   onTransfer,
   isTransferDisabled,
 }) => {
@@ -32,7 +40,6 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
   let destinationValue = "";
   let title = "";
 
-  // Determine display based on transferType
   if (transferType === 'withinBank') {
     title = "Transfer Summary (Within Bank)";
     destinationLabel = "Recipient:";
@@ -44,9 +51,8 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
   } else if (transferType === 'billPayment') {
     title = "Bill Payment Summary";
     destinationLabel = "Biller:";
-    destinationValue = biller?.name || "Not selected";
+    destinationValue = biller?.billerName || "Not selected"; // <--- CHANGE IS HERE
   }
-
 
   return (
     <Card className="shadow-banking">
@@ -71,7 +77,6 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
             </div>
           </>
         )}
-        {/* Add more summary details if needed, e.g., message */}
       </CardContent>
       <CardFooter className="flex justify-center">
         <Button

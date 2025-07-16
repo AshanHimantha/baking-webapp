@@ -33,7 +33,7 @@ const TransferFromAccountSelect: React.FC<TransferFromAccountSelectProps> = ({
           <SelectValue placeholder="Select an account to send from..." />
         </SelectTrigger>
         <SelectContent>
-          {accounts.map((account) => (
+          {accounts.filter((account) => account.accountType === "SAVING" || account.accountType === "CURRENT").map((account) => (
             <SelectItem key={account.accountNumber} value={account.accountNumber}>
               <div className="flex items-center gap-2 font-medium">
                

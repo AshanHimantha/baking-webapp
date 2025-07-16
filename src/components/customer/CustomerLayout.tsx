@@ -46,11 +46,6 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   // Use useUserStore for detailed user profile data
   const { userProfile, isLoading, error, fetchUserProfile } = useUserStore();
 
-  // Re-fetch profile if it's null, or on mount (though App.tsx handles initial fetch)
-  // This useEffect ensures that if CustomerLayout is accessed directly without
-  // App.tsx having finished loading the profile, it attempts to load it.
-  // Although App.tsx should ideally ensure profile is loaded before ProtectedRoute passes.
-  // This is a safety net.
   useEffect(() => {
     if (!userProfile && !isLoading) { // Only fetch if no profile and not already loading
       fetchUserProfile();
@@ -218,9 +213,12 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
               >
                 <Menu className="w-5 h-5" />
               </Button>
+              <div>
               <h1 className="ml-2 lg:ml-0 text-lg lg:text-xl font-semibold text-foreground truncate">
                 {navigation.find(item => isCurrentPath(item.href))?.name || 'Dashboard'}
               </h1>
+
+</div>
             </div>
 
             <div className="flex items-center space-x-2 lg:space-x-4">

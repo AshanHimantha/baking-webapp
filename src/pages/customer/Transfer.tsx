@@ -1,14 +1,15 @@
 // src/pages/CustomerTransfer.tsx
 import CustomerLayout from "@/components/customer/CustomerLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"; // NEW IMPORT
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-// Import the new components
+// Import new components
 import TransferSuccessConfirmation from "@/components/customer/TransferSuccessConfirmation";
 import TransferDetailsCard from "@/components/customer/TransferDetailsCard";
 import TransferSummaryCard from "@/components/customer/TransferSummaryCard";
 import CustomerAccountBalanceCard from "@/components/customer/CustomerAccountBalanceCard";
 import TransferFromAccountSelect from "@/components/customer/TransferFromAccountSelect";
+import BillPaymentForm from "@/components/customer/BillPaymentForm";
 
 // Existing Imports
 import { useState, useRef, useEffect } from "react";
@@ -19,67 +20,67 @@ import RecentTransactionsList, { Account, RecentTransaction } from "@/components
 import { Landmark, Receipt, Repeat } from "lucide-react";
 
 
-
 const CustomerTransfer = () => {
   const recurringTransfersRef = useRef<RecurringTransfersListHandle>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
   const [isPageLoading, setIsPageLoading] = useState(true);
 
-
-
-
-
-  // Transfer Type State (NEW)
+  // Transfer Type State
   const [transferType, setTransferType] = useState<'withinBank' | 'ownAccount' | 'billPayment'>('withinBank');
 
   // Form State - Common
   const [fromAccount, setFromAccount] = useState<string>("");
   const [amount, setAmount] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(""); // This state will now hold billerReferenceNumber for billPayment
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState("weekly");
   const [startDate, setStartDate] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Form State - Specific (NEW)
+  // Form State - Specific
   const [recipient, setRecipient] = useState<any | null>(null); // For 'withinBank'
   const [toOwnAccount, setToOwnAccount] = useState<string>(""); // For 'ownAccount'
-  const [biller, setBiller] = useState<any | null>(null); // For 'billPayment' (e.g., { id: 'billerId123', name: 'Utility Company' })
+  const [biller, setBiller] = useState<any | null>(null); // For 'billPayment'
 
-const fetchDashboardData = async () => {
-  setIsPageLoading(true); 
-  try {
-    const response = await apiClient.get('/api/dashboard');
-    const { accounts: fetchedAccounts, recentTransactions: fetchedTransactions } = response.data;
 
-    setAccounts(fetchedAccounts || []);
-    setRecentTransactions(fetchedTransactions || []);
+  // Fetch dashboard data (accounts for 'from account' dropdown, recent transactions)
+  const fetchDashboardData = async () => {
+    setIsPageLoading(true);
+    try {
+      const response = await apiClient.get('/api/dashboard');
+      const { accounts: fetchedAccounts, recentTransactions: fetchedTransactions } = response.data;
 
-    if (fetchedAccounts && fetchedAccounts.length > 0 &&
-        (!fromAccount || !fetchedAccounts.some(acc => acc.accountNumber === fromAccount))) {
-      setFromAccount(fetchedAccounts[0].accountNumber);
+      setAccounts(fetchedAccounts || []);
+      setRecentTransactions(fetchedTransactions || []);
+
+      if (fetchedAccounts && fetchedAccounts.length > 0 &&
+          (!fromAccount || !fetchedAccounts.some(acc => acc.accountNumber === fromAccount))) {
+        setFromAccount(fetchedAccounts[0].accountNumber);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+      toast.error("Could not load your dashboard. Please try again later.");
+    } finally {
+      setIsPageLoading(false);
     }
-  } catch (error) {
-    console.error("Failed to fetch dashboard data:", error);
-    toast.error("Could not load your dashboard. Please try again later.");
-  } finally {
-    setIsPageLoading(false);
-  }
-};
+  };
 
+  // Call fetchDashboardData on mount
   useEffect(() => {
-    
     fetchDashboardData();
-  
   }, []);
 
-  // Effect to reset type-specific fields when transferType changes
+  // Effect to reset type-specific fields and message when transferType changes
   useEffect(() => {
     setRecipient(null);
     setToOwnAccount("");
     setBiller(null);
-
+    setMessage(""); // Crucial: Clear message as its meaning (memo vs. billerRef) changes
+    // setAmount(""); // Optionally, also clear amount
+    // setIsRecurring(false); // Optionally, reset recurring
+    // setFrequency("weekly");
+    // setStartDate("");
   }, [transferType]);
 
 
@@ -93,34 +94,25 @@ const fetchDashboardData = async () => {
       toast.error("Please select an account to transfer from and enter a valid amount.");
       return;
     }
-    if (isRecurring && !startDate) {
-      toast.error("Please select a start date for the recurring transfer/payment.");
-      return;
-    }
 
-    const allowedFrequencies = ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"];
-    const frequencyValue = frequency.toUpperCase();
-    if (isRecurring && !allowedFrequencies.includes(frequencyValue)) {
-      toast.error("Invalid frequency selected.");
-      return;
+    // Validate recurring specifics, applies only if recurring is allowed for the type
+    if (isRecurring && transferType !== 'ownAccount') { // Own account transfers don't support recurring via this API
+        if (!startDate) {
+            toast.error("Please select a start date for the recurring transfer/payment.");
+            return;
+        }
+        const allowedFrequencies = ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"];
+        const frequencyValue = frequency.toUpperCase();
+        if (!allowedFrequencies.includes(frequencyValue)) {
+            toast.error("Invalid frequency selected.");
+            return;
+        }
     }
 
     let successMessage = "";
     let errorMessage = "";
     let endpoint = "";
-    let body: any = {
-      fromAccountNumber: fromAccount,
-      amount: parseFloat(amount),
-      userMemo: message,
-    };
-
-    if (isRecurring) {
-      body = {
-        ...body,
-        frequency: frequencyValue,
-        startDate: startDate,
-      };
-    }
+    let requestBody: any; // Use a dedicated requestBody for API call
 
     try {
       switch (transferType) {
@@ -129,17 +121,31 @@ const fetchDashboardData = async () => {
             toast.error("Please select a recipient for within-bank transfer.");
             return;
           }
-          body = {
-            ...body,
-            toAccountNumber: recipient.accountNumber,
-          };
-          endpoint = isRecurring ? "/api/payments/schedule" : "/api/transactions/transfer";
-          successMessage = isRecurring
-            ? `Recurring transfer to ${recipient.firstName} scheduled!`
-            : `Transfer to ${recipient.firstName} completed successfully!`;
-          errorMessage = isRecurring
-            ? "Failed to schedule recurring transfer"
-            : "Failed to complete transfer";
+          if (isRecurring) {
+              endpoint = "/api/payments/schedule"; // Generic schedule API
+              requestBody = {
+                  fromAccountNumber: fromAccount,
+                  amount: parseFloat(amount),
+                  userMemo: message, // 'message' is generic memo for this type
+                  toAccountNumber: recipient.accountNumber,
+                  frequency: frequency.toUpperCase(),
+                  startDate: startDate,
+                  billerId: null, // Explicitly null for non-biller transfers
+                  endDate: null, // As per schedule API spec, include if not managed in UI
+              };
+              successMessage = `Recurring transfer to ${recipient.firstName} scheduled!`;
+              errorMessage = "Failed to schedule recurring transfer";
+          } else {
+              endpoint = "/api/transactions/transfer"; // One-time transfer API
+              requestBody = {
+                  fromAccountNumber: fromAccount,
+                  amount: parseFloat(amount),
+                  userMemo: message, // 'message' is generic memo for this type
+                  toAccountNumber: recipient.accountNumber,
+              };
+              successMessage = `Transfer to ${recipient.firstName} completed successfully!`;
+              errorMessage = "Failed to complete transfer";
+          }
           break;
 
         case 'ownAccount':
@@ -147,36 +153,61 @@ const fetchDashboardData = async () => {
             toast.error("Please select a valid different destination account for own account transfer.");
             return;
           }
-          body = {
-            ...body,
+          if (isRecurring) {
+              // As per the given API specs, recurring is not supported for own-account transfers.
+              toast.error("Recurring transfers are not supported for transfers between your own accounts.");
+              return;
+          }
+          endpoint = "/api/transactions/transfer"; // One-time transfer API
+          requestBody = {
+            fromAccountNumber: fromAccount,
+            amount: parseFloat(amount),
+            userMemo: message, // 'message' is generic memo for this type
             toAccountNumber: toOwnAccount,
           };
-          // Assuming own account transfers are instant and not recurring via a separate API typically
-          endpoint = "/api/transactions/transfer"; // Placeholder for an API endpoint for internal transfers
           successMessage = `Transfer to your other account (${toOwnAccount}) completed successfully!`;
           errorMessage = "Failed to complete own account transfer";
-          // Reset recurring flags for own account transfers as they are typically not recurring
-          setIsRecurring(false); // Force recurring off for own account transfers
-          setFrequency("weekly");
-          setStartDate("");
+          // No need to reset recurring state here, as the check above prevents it if enabled.
           break;
 
         case 'billPayment':
-          if (!biller || !biller.id || !biller.name) {
+          if (!biller || !biller.id) {
             toast.error("Please select a biller for bill payment.");
             return;
           }
-          body = {
-            ...body,
-            billerId: biller.id,
-          };
-          endpoint = isRecurring ? "/api/bills/schedule" : "/api/bills/pay"; // Placeholder for bill payment endpoints
-          successMessage = isRecurring
-            ? `Recurring payment to ${biller.name} scheduled!`
-            : `Payment to ${biller.name} completed successfully!`;
-          errorMessage = isRecurring
-            ? "Failed to schedule recurring bill payment"
-            : "Failed to complete bill payment";
+          if (!message) { // 'message' now holds billerReferenceNumber, make it mandatory
+            toast.error("Please enter the biller account number or reference.");
+            return;
+          }
+
+          // For bill payment, 'message' state is now 'billerReferenceNumber'
+          if (isRecurring) {
+              endpoint = "/api/payments/schedule"; // Recurring bill payment API
+              requestBody = {
+                  fromAccountNumber: fromAccount,
+                  amount: parseFloat(amount),
+                  billerId: biller.id,
+                  billerReferenceNumber: message, // Use 'message' state for billerReferenceNumber
+                  frequency: frequency.toUpperCase(),
+                  startDate: startDate,
+                  toAccountNumber: null, // Required for /api/payments/schedule when using billerId
+                  endDate: null, // Include as per API spec, even if not managed in UI
+                  userMemo: `Recurring payment for ${biller.billerName}`, // Specific memo for schedule
+              };
+              successMessage = `Recurring payment to ${biller.billerName} scheduled!`;
+              errorMessage = "Failed to schedule recurring bill payment";
+          } else {
+              endpoint = "/api/bills/pay"; // One-time bill payment API
+              requestBody = {
+                  fromAccountNumber: fromAccount,
+                  amount: parseFloat(amount),
+                  billerId: biller.id,
+                  billerReferenceNumber: message, // Use 'message' state for billerReferenceNumber
+                  userMemo: `One-time payment for ${biller.billerName}`, // Specific memo for one-time
+              };
+              successMessage = `Payment to ${biller.billerName} completed successfully!`;
+              errorMessage = "Failed to complete bill payment";
+          }
           break;
 
         default:
@@ -184,23 +215,24 @@ const fetchDashboardData = async () => {
           return;
       }
 
-      await apiClient.post(endpoint, body);
+      await apiClient.post(endpoint, requestBody); // Use the constructed requestBody
       toast.success(successMessage);
-      fetchDashboardData(); 
+      fetchDashboardData(); // Refresh account balances and recent transactions after successful transfer
+
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
         // Reset common fields
         setAmount("");
-        setMessage("");
+        setMessage(""); // Clears the billerReferenceNumber or generic memo for next use
         setIsRecurring(false);
         setFrequency("weekly");
         setStartDate("");
         // Reset type-specific fields
-        setRecipient(null); // For withinBank
-        setToOwnAccount(""); // For ownAccount
-        setBiller(null); // For billPayment
-        // Optionally, refresh lists after successful transfer
+        setRecipient(null);
+        setToOwnAccount("");
+        setBiller(null);
+        // Refresh recurring transfers list if applicable
         recurringTransfersRef.current?.refreshList();
       }, 3000);
 
@@ -229,8 +261,8 @@ const fetchDashboardData = async () => {
           isRecurring={isRecurring}
           frequency={frequency}
           startDate={startDate}
-          transferType={transferType} // Pass new prop
-          recipient={transferType === 'withinBank' ? recipient : null} // Pass relevant data
+          transferType={transferType}
+          recipient={transferType === 'withinBank' ? recipient : null}
           toOwnAccount={transferType === 'ownAccount' ? toOwnAccount : null}
           biller={transferType === 'billPayment' ? biller : null}
           onMakeAnotherTransfer={() => setShowSuccess(false)}
@@ -251,13 +283,14 @@ const fetchDashboardData = async () => {
           </p>
         </div>
 
-        {/* NEW: Transfer Type Selection */}
-        <div className="flex justify-start mb-6">
+        {/* Transfer Type Selection */}
+     
+<div className="flex justify-start mb-6 ">
           <ToggleGroup
             type="single"
             value={transferType}
             onValueChange={(value) => value && setTransferType(value as 'withinBank' | 'ownAccount' | 'billPayment')}
-            className="bg-gray-100 dark:bg-gray-800 rounded-lg p-1"
+            className="bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-2"
           >
             <ToggleGroupItem value="withinBank" aria-label="Transfer within bank" className="px-4 py-2 text-sm font-medium flex items-center gap-2 data-[state=on]:bg-orange-600 data-[state=on]:text-white data-[state=on]:shadow-sm rounded-md transition-colors">
               <Landmark className="w-5" />
@@ -271,13 +304,13 @@ const fetchDashboardData = async () => {
               <Receipt className="w-5" />
               Bill Payment
             </ToggleGroupItem>
-            
+
           </ToggleGroup>
         </div>
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-
+        <div className="grid lg:grid-cols-3 gap-6 ">
+         
+          
+          <div className="lg:col-span-2 space-y-6 ">
 
             {/* 1. Within Bank Transfer */}
             {transferType === 'withinBank' && (
@@ -295,7 +328,7 @@ const fetchDashboardData = async () => {
                 setFrequency={setFrequency}
                 startDate={startDate}
                 setStartDate={setStartDate}
-                message={message}
+                message={message} // 'message' is generic memo here
                 setMessage={setMessage}
               />
             )}
@@ -308,7 +341,6 @@ const fetchDashboardData = async () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                  <div></div>
                     <TransferFromAccountSelect
                       label="From Account"
                       accounts={accounts}
@@ -348,112 +380,29 @@ const fetchDashboardData = async () => {
                       placeholder="Add a memo for this transfer..."
                     ></textarea>
                   </div>
-                  {/* Recurring options typically not applicable for own account transfers */}
                 </CardContent>
               </Card>
             )}
 
-            {/* 3. Bill Payment */}
+            {/* 3. Bill Payment (Using new component) */}
             {transferType === 'billPayment' && (
-              <Card className="shadow-banking">
-                <CardHeader>
-                  <CardTitle>Bill Payment</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label htmlFor="fromAccountBill" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Account</label>
-                    <select
-                      id="fromAccountBill"
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      value={fromAccount}
-                      onChange={(e) => setFromAccount(e.target.value)}
-                    >
-                      {accounts.map((account) => (
-                        <option key={account.accountNumber} value={account.accountNumber}>
-                          {account.accountName} ({account.accountNumber}) - ${account.balance.toFixed(2)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="biller" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Biller</label>
-                    {/* In a real application, this would be a sophisticated search/lookup component for billers */}
-                    {/* For this example, we'll use a simple input that sets a dummy biller object */}
-                    <input
-                      type="text"
-                      id="biller"
-                      value={biller?.name || ''}
-                      onChange={(e) => setBiller({ id: `biller-${e.target.value.toLowerCase().replace(/\s/g, '-')}`, name: e.target.value })}
-                      placeholder="Enter Biller Name or ID"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="amountBill" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount</label>
-                    <input
-                      type="number"
-                      id="amountBill"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0.00"
-                      min="0.01"
-                      step="0.01"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
-                  {/* Bill payments can also be recurring */}
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="isRecurringBill"
-                      checked={isRecurring}
-                      onChange={(e) => setIsRecurring(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 rounded dark:bg-gray-600 dark:border-gray-500"
-                    />
-                    <label htmlFor="isRecurringBill" className="text-sm font-medium text-gray-700 dark:text-gray-300">Make this a recurring payment?</label>
-                  </div>
-                  {isRecurring && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="frequencyBill" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency</label>
-                        <select
-                          id="frequencyBill"
-                          value={frequency}
-                          onChange={(e) => setFrequency(e.target.value)}
-                          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        >
-                          <option value="daily">Daily</option>
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                          <option value="quarterly">Quarterly</option>
-                          <option value="yearly">Yearly</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label htmlFor="startDateBill" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
-                        <input
-                          type="date"
-                          id="startDateBill"
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div>
-                    <label htmlFor="messageBill" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message (Optional)</label>
-                    <textarea
-                      id="messageBill"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={3}
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      placeholder="Add a memo for this payment..."
-                    ></textarea>
-                  </div>
-                </CardContent>
-              </Card>
+              <BillPaymentForm
+                accounts={accounts}
+                fromAccount={fromAccount}
+                setFromAccount={setFromAccount}
+                amount={amount}
+                setAmount={setAmount}
+                userMemo={message} // 'message' is passed as userMemo (which is billerReferenceNumber)
+                setUserMemo={setMessage}
+                isRecurring={isRecurring}
+                setIsRecurring={setIsRecurring}
+                frequency={frequency}
+                setFrequency={setFrequency}
+                startDate={startDate}
+                setStartDate={setStartDate}
+                biller={biller}
+                setBiller={setBiller}
+              />
             )}
           </div>
           <div className="space-y-6">
@@ -461,8 +410,8 @@ const fetchDashboardData = async () => {
               amount={amount}
               isRecurring={isRecurring}
               frequency={frequency}
-              transferType={transferType} // Pass new prop
-              recipient={transferType === 'withinBank' ? recipient : null} // Pass relevant data
+              transferType={transferType}
+              recipient={transferType === 'withinBank' ? recipient : null}
               toOwnAccount={transferType === 'ownAccount' ? toOwnAccount : null}
               biller={transferType === 'billPayment' ? biller : null}
               onTransfer={handleTransfer}
@@ -470,7 +419,7 @@ const fetchDashboardData = async () => {
                 !fromAccount || !amount || parseFloat(amount) <= 0 ||
                 (transferType === 'withinBank' && !recipient) ||
                 (transferType === 'ownAccount' && (!toOwnAccount || fromAccount === toOwnAccount)) ||
-                (transferType === 'billPayment' && (!biller || !biller.id)) ||
+                (transferType === 'billPayment' && (!biller || !biller.id || !message)) || // Ensure message (billerReferenceNumber) is present
                 (isRecurring && !startDate)
               }
             />

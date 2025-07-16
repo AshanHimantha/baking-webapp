@@ -1,19 +1,26 @@
 // src/components/customer/TransferSuccessConfirmation.tsx
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircleIcon } from "@heroicons/react/24/outline"; // Make sure you have Heroicons installed
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
+
+// Add Biller interface if not already defined here, or import it
+interface Biller {
+  billerName: string;
+  category: string; // Or specific enum
+  id: number;
+  logoUrl: string | null;
+  status: string;
+}
 
 interface TransferSuccessConfirmationProps {
   amount: string;
   isRecurring: boolean;
   frequency: string;
   startDate: string;
-  // NEW PROPS FOR TRANSFER TYPES
   transferType: 'withinBank' | 'ownAccount' | 'billPayment';
-  recipient?: any | null; // Optional for withinBank
-  toOwnAccount?: string | null; // Optional for ownAccount
-  biller?: { id: string; name: string } | null; // Optional for billPayment
-  // END NEW PROPS
+  recipient?: any | null;
+  toOwnAccount?: string | null;
+  biller?: Biller | null; // Use the Biller interface
   onMakeAnotherTransfer: () => void;
 }
 
@@ -22,16 +29,15 @@ const TransferSuccessConfirmation: React.FC<TransferSuccessConfirmationProps> = 
   isRecurring,
   frequency,
   startDate,
-  transferType, // Destructure new prop
-  recipient, // Destructure new prop
-  toOwnAccount, // Destructure new prop
-  biller, // Destructure new prop
+  transferType,
+  recipient,
+  toOwnAccount,
+  biller,
   onMakeAnotherTransfer,
 }) => {
   const formattedAmount = parseFloat(amount).toFixed(2);
   let transferDescription = "";
 
-  // Dynamic success message based on transfer type
   if (transferType === 'withinBank' && recipient) {
     transferDescription = `Your ${isRecurring ? 'recurring ' : ''}transfer of $${formattedAmount} to ${recipient.firstName} ${recipient.lastName} (${recipient.accountNumber}) has been completed successfully.`;
     if (isRecurring) {
@@ -40,7 +46,7 @@ const TransferSuccessConfirmation: React.FC<TransferSuccessConfirmationProps> = 
   } else if (transferType === 'ownAccount' && toOwnAccount) {
     transferDescription = `Your transfer of $${formattedAmount} to your account (${toOwnAccount}) has been completed successfully.`;
   } else if (transferType === 'billPayment' && biller) {
-    transferDescription = `Your ${isRecurring ? 'recurring ' : ''}payment of $${formattedAmount} to ${biller.name} has been completed successfully.`;
+    transferDescription = `Your ${isRecurring ? 'recurring ' : ''}payment of $${formattedAmount} to ${biller.billerName} has been completed successfully.`; // <--- CHANGE IS HERE
     if (isRecurring) {
       transferDescription += ` It is scheduled to start on ${startDate} and recur ${frequency}.`;
     }
@@ -49,7 +55,7 @@ const TransferSuccessConfirmation: React.FC<TransferSuccessConfirmationProps> = 
   }
 
   return (
-    <Card className="shadow-sm max-w-lg mx-auto mt-10 animate-fade-in">
+    <Card className="shadow-lg max-w-lg mx-auto mt-10">
       <CardHeader>
         <CardTitle className="flex items-center text-green-600">
           <CheckCircleIcon className="h-6 w-6 mr-2" />

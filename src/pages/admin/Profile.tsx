@@ -266,16 +266,7 @@ const AdminProfile = () => {
                     {profileData?.username && (
                       <p className="text-sm text-gray-500 dark:text-gray-500">@{profileData.username}</p>
                     )}
-                    <div className="flex gap-2 mt-1">
-                      <Badge variant="default" className="bg-purple-600">
-                        {formData.role}
-                      </Badge>
-                      {profileData?.kycStatus === 'VERIFIED' && (
-                        <Badge variant="outline" className="border-green-500 text-green-600">
-                          Verified
-                        </Badge>
-                      )}
-                    </div>
+                    
                   </div>
                 </div>
 
