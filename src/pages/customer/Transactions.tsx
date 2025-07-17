@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import TransactionDetailModal from "@/components/customer/TransactionDetailModal";
 import {
   Search,
   Download,
@@ -17,8 +18,16 @@ import {
   LogIn,
   LogOut,
   HelpCircle,
+  MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -34,6 +43,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { apiClient } from "@/lib/apiClient";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Define the API transaction types from your enum
 const APITransactionTypes = [
@@ -62,6 +72,20 @@ const CustomerTransactions = () => {
   const [pageSize, setPageSize] = useState(20);
   const [accounts, setAccounts] = useState([]);
   const [fromAccount, setFromAccount] = useState(null);
+  // Statement modal state
+  const [statementModalOpen, setStatementModalOpen] = useState(false);
+  const [statementAccount, setStatementAccount] = useState(null);
+  const [statementStartDate, setStatementStartDate] = useState();
+  const [statementEndDate, setStatementEndDate] = useState();
+  // Helper to check if range is valid (<= 31 days)
+  const isStatementRangeValid = statementStartDate && statementEndDate && ((statementEndDate - statementStartDate) / (1000 * 60 * 60 * 24) <= 31);
+  const [statementLoading, setStatementLoading] = useState(false);
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [transactionDetails, setTransactionDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
 
   const mapApiTransactionToUi = (transaction, currentAccount) => {
     let type, merchantName, IconComponent, colorClass, category;
@@ -234,15 +258,55 @@ const CustomerTransactions = () => {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  const totalSpent = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0)
-    .toFixed(2);
+  // Download receipt for a transaction
+  const handleDownloadReceipt = async (transactionId) => {
+    try {
+      const response = await apiClient.get(`/api/transactions/${transactionId}/receipt`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `receipt-${transactionId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (err) {
+      alert('Failed to download receipt.');
+    }
+  };
 
-  const totalReceived = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0)
-    .toFixed(2);
+  // --- FIXED: Modal handling logic ---
+
+  const handleOpenTransactionDetails = async (transactionId) => {
+    // 1. Set loading state immediately and clear old data
+    setIsModalOpen(true);
+    setDetailsLoading(true);
+    setTransactionDetails(null); 
+
+    try {
+      // 2. Fetch new data
+      const response = await apiClient.get(`/api/transactions/${transactionId}`);
+      setTransactionDetails(response.data);
+    } catch (err) {
+      console.error('Failed to load transaction details:', err);
+      // On error, details will remain null, triggering the error message in the modal
+      setTransactionDetails(null);
+    } finally {
+      // 3. Stop loading, whether it succeeded or failed
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleCloseTransactionDetails = () => {
+    setIsModalOpen(false);
+
+    // 4. IMPORTANT: Reset state after the exit animation completes
+    setTimeout(() => {
+      setTransactionDetails(null);
+      setDetailsLoading(false);
+    }, 300); // Duration should match your modal's exit animation
+  };
 
   if (!fromAccount) {
     return (
@@ -267,17 +331,14 @@ const CustomerTransactions = () => {
             </p>
           </div>
 
-             <div className="mb-4">
-              
-          <TransferFromAccountSelect  
-            accounts={accounts}
-            selectedAccount={fromAccount}
-            onAccountChange={setFromAccount}
-          />
+          <div className="mb-4">
+            <TransferFromAccountSelect
+              accounts={accounts}
+              selectedAccount={fromAccount}
+              onAccountChange={setFromAccount}
+            />
+          </div>
         </div>
-        </div>
-
-     
 
         {/* Filters */}
         <Card className="shadow-banking">
@@ -295,7 +356,6 @@ const CustomerTransactions = () => {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
-                {/* Transaction Type Filter (API-driven) */}
                 <Select
                   value={apiTransactionTypeFilter}
                   onValueChange={setApiTransactionTypeFilter}
@@ -311,8 +371,6 @@ const CustomerTransactions = () => {
                     ))}
                   </SelectContent>
                 </Select>
-
-                {/* Date Range Picker */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -346,6 +404,107 @@ const CustomerTransactions = () => {
                     />
                   </PopoverContent>
                 </Popover>
+                <Button
+                  variant="primary"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={() => {
+                    setStatementAccount(fromAccount);
+                    setStatementStartDate(undefined);
+                    setStatementEndDate(undefined);
+                    setStatementModalOpen(true);
+                  }}
+                >
+                  Get Statement
+                  <Download className="w-2 h-4 ml-2" />
+                </Button>
+      {/* Statement Modal */}
+      <Dialog open={statementModalOpen} onOpenChange={setStatementModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Download Statement</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <TransferFromAccountSelect
+              accounts={accounts}
+              selectedAccount={statementAccount}
+              onAccountChange={setStatementAccount}
+            />
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm mb-1">Start Date</label>
+                <input
+                  type="date"
+                  className="w-full border rounded px-2 py-1"
+                  value={statementStartDate ? format(statementStartDate, 'yyyy-MM-dd') : ''}
+                  onChange={e => {
+                    const newStart = e.target.value ? new Date(e.target.value) : undefined;
+                    // If end date is set and new start > end, reset end
+                    if (statementEndDate && newStart && newStart > statementEndDate) {
+                      setStatementEndDate(undefined);
+                    }
+                    setStatementStartDate(newStart);
+                  }}
+                  max={statementEndDate ? format(statementEndDate, 'yyyy-MM-dd') : undefined}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm mb-1">End Date</label>
+                <input
+                  type="date"
+                  className="w-full border rounded px-2 py-1"
+                  value={statementEndDate ? format(statementEndDate, 'yyyy-MM-dd') : ''}
+                  onChange={e => {
+                    const newEnd = e.target.value ? new Date(e.target.value) : undefined;
+                    // If start date is set and new end < start, reset start
+                    if (statementStartDate && newEnd && newEnd < statementStartDate) {
+                      setStatementStartDate(undefined);
+                    }
+                    setStatementEndDate(newEnd);
+                  }}
+                  min={statementStartDate ? format(statementStartDate, 'yyyy-MM-dd') : undefined}
+                  max={statementStartDate ? format(new Date(+statementStartDate + 31 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd') : undefined}
+                />
+              </div>
+            </div>
+            {statementStartDate && statementEndDate && !isStatementRangeValid && (
+              <div className="text-xs text-red-500 mt-2">Maximum range is 31 days.</div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="primary"
+              disabled={statementLoading || !statementAccount || !statementStartDate || !statementEndDate || !isStatementRangeValid}
+              onClick={async () => {
+                if (!statementAccount || !statementStartDate || !statementEndDate || !isStatementRangeValid) return;
+                setStatementLoading(true);
+                try {
+                  const start = format(statementStartDate, 'yyyy-MM-dd');
+                  const end = format(statementEndDate, 'yyyy-MM-dd');
+                  const response = await apiClient.get(`/api/statements/${statementAccount}/download`, {
+                    params: { startDate: start, endDate: end },
+                    responseType: 'blob',
+                  });
+                  const url = window.URL.createObjectURL(new Blob([response.data]));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', `statement-${statementAccount}-${start}-to-${end}.pdf`);
+                  document.body.appendChild(link);
+                  link.click();
+                  link.parentNode.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                  setStatementModalOpen(false);
+                } catch (err) {
+                  alert('Failed to download statement.');
+                } finally {
+                  setStatementLoading(false);
+                }
+              }}
+            >
+              {statementLoading ? 'Downloading...' : 'Download PDF'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
               </div>
             </div>
           </CardContent>
@@ -365,22 +524,20 @@ const CustomerTransactions = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100 mx-auto mt-4"></div>
               </div>
             )}
-
             {error && (
               <div className="text-center py-12 text-red-500">
                 <p className="text-lg font-medium">Error loading data</p>
                 <p>{error}</p>
               </div>
             )}
-
             {!loading && !error && (
-              <div className="space-y-3">
+              <div className="space-y-2 ">
                 {transactions.map((transaction) => {
                   const Icon = transaction.icon;
                   return (
                     <div
                       key={transaction.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      className="flex items-center justify-between p-3 px-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       <div className="flex items-center space-x-4">
                         <div>
@@ -389,74 +546,61 @@ const CustomerTransactions = () => {
                               {transaction.merchant}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <div className="text-sm text-gray-500 dark:text-gray-400 flex justify-between">
-                            
-                              <Badge variant="outline" className="text-xs gap-1">
-                                {transaction.category}{" "}
-                                <div
-                                  className={`${transaction.color} p-1 rounded-full text-white `}
-                                >
-                                  <Icon className="w-2 h-2" />
-                                </div>
-                              </Badge>
-                            </div>
-
-                            {transaction.status === "completed" ? (
-                              <span className="border border-green-500 rounded-full h-4 w-4 flex items-center justify-center bg-green-500">
-                                <svg
-                                  className="w-3  text-white inline"
-                                  fill="none"
-                                  viewBox="0 0 16 16"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M4 8l3 3 5-5"
-                                  />
-                                </svg>
-                              </span>
-                            ) : (
-                              <svg
-                                className="w-3 h-3 text-red-500 inline"
-                                fill="none"
-                                viewBox="0 0 16 16"
-                              >
-                                <path
-                                  stroke="currentColor"
-                                  strokeWidth="3"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M4 4l8 8M12 4l-8 8"
-                                />
-                              </svg>
-                            )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs gap-1 py-0.5">
+                              {transaction.category}
+                              <div className={`${transaction.color} p-1 rounded-full text-white`}>
+                                <Icon className="w-2 h-2" />
+                              </div>
+                            </Badge>
                           </div>
-                          <div className="flex items-center space-x-2 mt-1"></div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={`font-semibold text-lg ${
-                            transaction.type === "income"
-                              ? "text-green-600"
-                              : "text-gray-900 dark:text-white"
-                          }`}
-                        >
-                          {transaction.type === "income" ? "+" : "-"}$
-                          {transaction.amount.toFixed(2)}
-                        </p>
-                        <p className=" text-gray-500 dark:text-gray-400 text-xs min-w-20 ">
-                          {transaction.date}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <p
+                            className={`font-semibold text-lg ${
+                              transaction.type === "income"
+                                ? "text-green-600"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
+                            {transaction.type === "income" ? "+" : "-"}$
+                            {transaction.amount.toFixed(2)}
+                          </p>
+                          <p className="text-gray-500 dark:text-gray-400 text-xs min-w-20">
+                            {transaction.date}
+                          </p>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                              <MoreVertical className="w-5 h-5 text-gray-500" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleDownloadReceipt(transaction.id)}>
+                              <Download className="w-4 h-4 mr-2" /> Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenTransactionDetails(transaction.id)}>
+                              View Details
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   );
                 })}
               </div>
             )}
+
+            {/* Modal is now controlled by the fixed logic */}
+            <TransactionDetailModal
+              isOpen={isModalOpen}
+              onClose={handleCloseTransactionDetails}
+              details={transactionDetails}
+              isLoading={detailsLoading}
+            />
 
             {!loading && !error && transactions.length === 0 && (
               <div className="text-center py-12">

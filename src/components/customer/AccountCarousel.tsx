@@ -80,9 +80,9 @@ const AccountCarousel = ({ accounts }) => {
         <div className="flex-shrink-0 w-72 h-44 rounded-xl border-2 border-dashed border-muted-foreground/50 flex items-center justify-center hover:bg-muted/50 transition-colors">
           <div className="text-center text-muted-foreground">
             <p className="font-semibold">Add New Account</p>
-            <p className="text-sm">Contact support to open a new account</p>
           </div>
         </div>
+        
       </div>
     </div>
   );

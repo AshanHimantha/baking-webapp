@@ -37,6 +37,8 @@ const CustomerDashboard = () => {
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const userProfile = useUserStore((state) => state.userProfile);
+  const fetchUserProfile = useUserStore((state) => state.fetchUserProfile);
+  const proDetails = useUserStore((state) => state.isLoading);
 
 
 

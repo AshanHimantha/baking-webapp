@@ -380,7 +380,7 @@ const CustomerProfile = () => {
             </Card>
 
             {/* Security Settings */}
-            <Card className="shadow-banking">
+            {/* <Card className="shadow-banking">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Shield className="w-5 h-5 mr-2" />
@@ -436,10 +436,10 @@ const CustomerProfile = () => {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Notification Preferences */}
-            <Card className="shadow-banking">
+            {/* <Card className="shadow-banking">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Bell className="w-5 h-5 mr-2" />
@@ -501,7 +501,7 @@ const CustomerProfile = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Sidebar */}
@@ -561,7 +561,7 @@ const CustomerProfile = () => {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="shadow-banking">
+            {/* <Card className="shadow-banking">
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
@@ -577,7 +577,7 @@ const CustomerProfile = () => {
                   Help & Support
                 </Button>
               </CardContent>
-            </Card>
+            </Card> */}
 
           
           </div>
