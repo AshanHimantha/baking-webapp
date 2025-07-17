@@ -129,13 +129,13 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed  inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed  inset-y-0 left-0 z-50 w-64  border-r   border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
+      <div className={`fixed  inset-y-0 left-0 z-50 w-64  border-r  bg-white dark:bg-slate-800 border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between  h-16 px-4 lg:px-6 border-b border-border flex-shrink-0 ">

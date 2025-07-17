@@ -1,4 +1,5 @@
 import CustomerLayout from "@/components/customer/CustomerLayout";
+import TransferFromAccountSelect from "@/components/customer/TransferFromAccountSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,16 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Download,
-  Calendar as CalendarIcon, // Renamed to avoid conflict with shadcn Calendar component
-  TrendingUp, // For income icon
-  Banknote,   // Generic icon for transfers (expense)
-  Zap,        // For Bill Payment
-  Wallet,     // For Top Up
-  Receipt,    // For Fee
-  Percent,    // For Interest Payout
-  LogIn,      // For Deposit
-  LogOut,     // For Withdrawal
-  HelpCircle, // Fallback icon for unknown types
+  Calendar as CalendarIcon,
+  TrendingUp,
+  Banknote,
+  Zap,
+  Wallet,
+  Receipt,
+  Percent,
+  LogIn,
+  LogOut,
+  HelpCircle,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -26,15 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar"; // Shadcn Calendar component
-import { format } from "date-fns"; // For date formatting
-
-// Import your apiClient
-import { apiClient } from "@/lib/apiClient"; // Adjust path if necessary
-
-// Define a placeholder for the user's account number.
-// In a real application, this would come from user session/context (e.g., localStorage, Redux, Context API).
-const MY_ACCOUNT_NUMBER = "ORBIN-2025-100001";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { apiClient } from "@/lib/apiClient";
 
 // Define the API transaction types from your enum
 const APITransactionTypes = [
@@ -49,38 +44,28 @@ const APITransactionTypes = [
 ];
 
 const CustomerTransactions = () => {
-  const [transactions, setTransactions] = useState([]); // Will hold fetched and mapped transactions
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  // New state for API's TransactionType filter
   const [apiTransactionTypeFilter, setApiTransactionTypeFilter] = useState("all");
-  const [dateRange, setDateRange] = useState({
-    from: undefined,
-    to: undefined,
-  });
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [accounts, setAccounts] = useState([]);
+  const [fromAccount, setFromAccount] = useState(null);
 
-  // --- Helper to map API data to UI format ---
-  const mapApiTransactionToUi = (transaction) => {
-    let type; // 'income' or 'expense' (for UI categorization of sums)
-    let merchantName;
-    let IconComponent;
-    let colorClass;
-    let category; // Display category derived from API type
+  const mapApiTransactionToUi = (transaction, currentAccount) => {
+    let type, merchantName, IconComponent, colorClass, category;
 
     const transactionDateObj = new Date(transaction.transactionDate);
     const date = format(transactionDateObj, 'yyyy-MM-dd');
     const time = format(transactionDateObj, 'hh:mm a');
-
-    // Use userMemo first, then description, then a generic fallback
     const description = transaction.userMemo || transaction.description || 'No description provided';
 
     switch (transaction.transactionType) {
       case 'TRANSFER':
-        // For TRANSFER, determine income/expense based on account numbers
-        const isIncomeTransfer = transaction.toAccountNumber === MY_ACCOUNT_NUMBER;
+        const isIncomeTransfer = transaction.toAccountNumber === currentAccount;
         type = isIncomeTransfer ? 'income' : 'expense';
         merchantName = isIncomeTransfer
           ? `From: ${transaction.fromAccountNumber || 'Unknown Account'}`
@@ -97,7 +82,7 @@ const CustomerTransactions = () => {
         category = 'Bills';
         break;
       case 'TOP_UP':
-        type = 'income'; // Assuming this means adding money to your own account
+        type = 'income';
         merchantName = transaction.description || 'Account Top Up';
         IconComponent = Wallet;
         colorClass = 'bg-purple-500';
@@ -132,7 +117,6 @@ const CustomerTransactions = () => {
         category = 'Cash Deposit';
         break;
       default:
-        // Fallback for any unexpected transaction types
         type = 'expense';
         merchantName = transaction.description || 'Unknown Transaction';
         IconComponent = HelpCircle;
@@ -143,31 +127,47 @@ const CustomerTransactions = () => {
 
     return {
       id: transaction.id,
-      type: type, // Derived 'income' or 'expense' for UI aggregation
+      type,
       merchant: merchantName,
       amount: parseFloat(transaction.amount),
-      date: date,
-      time: time,
-      category: category, // Display category
+      date,
+      time,
+      category,
       status: transaction.status.toLowerCase(),
       icon: IconComponent,
       color: colorClass,
-      description: description,
-      originalTransactionType: transaction.transactionType, // Keep original API type
+      description,
+      originalTransactionType: transaction.transactionType,
     };
   };
 
-  // --- Fetch Transactions from API ---
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await apiClient.get("/api/dashboard");
+        setAccounts(response.data.accounts || []);
+        if (response.data.accounts?.length > 0) {
+          setFromAccount(response.data.accounts[0].accountNumber);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard:", err);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
   const fetchTransactions = useCallback(async () => {
+    if (!fromAccount) return;
+
     setLoading(true);
     setError(null);
+
     try {
       const params = {
         size: pageSize,
         page: currentPage,
       };
 
-      // Add transaction type filter if not "all"
       if (apiTransactionTypeFilter !== 'all') {
         params.type = apiTransactionTypeFilter;
       }
@@ -175,26 +175,25 @@ const CustomerTransactions = () => {
       if (dateRange.from) {
         params.startDate = format(dateRange.from, 'yyyy-MM-dd');
       }
+
       if (dateRange.to) {
         params.endDate = format(dateRange.to, 'yyyy-MM-dd');
       }
 
-      const response = await apiClient.get(`/api/transactions/history/${MY_ACCOUNT_NUMBER}`, { params });
+      const response = await apiClient.get(`/api/transactions/history/${fromAccount}`, { params });
       const rawTransactions = response.data;
 
-      const mappedTransactions = rawTransactions.map(mapApiTransactionToUi);
+      const mappedTransactions = rawTransactions.map(txn =>
+        mapApiTransactionToUi(txn, fromAccount)
+      );
 
-      // Apply client-side search term filter
-      const filteredBySearch = mappedTransactions.filter(transaction => {
-        return (
-          transaction.merchant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      });
+      const filteredBySearch = mappedTransactions.filter(transaction =>
+        transaction.merchant.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
       setTransactions(filteredBySearch);
-
     } catch (err) {
       console.error("Failed to fetch transactions:", err);
       setError("Failed to load transactions. Please try again.");
@@ -202,21 +201,12 @@ const CustomerTransactions = () => {
     } finally {
       setLoading(false);
     }
-  }, [
-    currentPage,
-    pageSize,
-    searchTerm,
-    apiTransactionTypeFilter, // Dependency for API type filter
-    dateRange.from,
-    dateRange.to
-  ]);
+  }, [fromAccount, currentPage, pageSize, searchTerm, apiTransactionTypeFilter, dateRange.from, dateRange.to]);
 
-  // Effect hook to trigger data fetch
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // Calculate totals for summary cards based on currently displayed transactions
   const totalSpent = transactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
@@ -227,19 +217,36 @@ const CustomerTransactions = () => {
     .reduce((sum, t) => sum + t.amount, 0)
     .toFixed(2);
 
+  if (!fromAccount) {
+    return (
+      <CustomerLayout>
+        <div className="text-center py-20 text-gray-500 dark:text-gray-400">
+          No account selected or available.
+        </div>
+      </CustomerLayout>
+    );
+  }
+
   return (
     <CustomerLayout>
       <div className="space-y-6 pb-16 lg:pb-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Transactions</h1>
             <p className="text-gray-600 dark:text-gray-400">Track all your financial activities</p>
           </div>
-          {/* <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button> */}
+
+
+        <TransferFromAccountSelect
+            label=""
+            accounts={accounts}
+            selectedAccount={fromAccount}
+            onAccountChange={setFromAccount}
+          />
+        </div>
+
+        <div className="mb-4">
+          
         </div>
 
         {/* Filters */}
@@ -311,33 +318,7 @@ const CustomerTransactions = () => {
           </CardContent>
         </Card>
 
-        {/* Transaction Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="shadow-banking">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Transactions</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{transactions.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-banking">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Spent</p>
-                <p className="text-2xl font-bold text-red-600">${totalSpent}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-banking">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Received</p>
-                <p className="text-2xl font-bold text-green-600">${totalReceived}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      
 
         {/* Transactions List */}
         <Card className="shadow-banking">

@@ -103,3 +103,36 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Add this to your global CSS file (e.g., globals.css) */
+
+/* Utility to hide the scrollbar for a container */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+/* Add this to your global CSS file (e.g., globals.css) */
+
+@keyframes animate-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-bg {
+  /* Make the background 3x the size of the card so we can move it */
+  background-size: 300% 300%;
+  /* Apply the animation */
+  animation: animate-gradient 15s ease infinite;
+}
