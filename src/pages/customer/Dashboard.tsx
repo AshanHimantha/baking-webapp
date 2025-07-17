@@ -40,32 +40,32 @@ const CustomerDashboard = () => {
 
 
 
-  const quickActions = [
-    {
-      name: "Transfer",
-      icon: ArrowLeftRight,
-      color: "bg-banking-primary",
-      href: "/customer/transfer",
-    },
-    {
-      name: "Pay Bills",
-      icon: Receipt,
-      color: "bg-banking-success",
-      href: "/customer/transactions",
-    },
-    {
-      name: "Add Money",
-      icon: Plus,
-      color: "bg-purple-500",
-      href: "/customer/cards",
-    },
-    {
-      name: "Cards",
-      icon: CreditCard,
-      color: "bg-banking-warning",
-      href: "/customer/cards",
-    },
-  ];
+  // const quickActions = [
+  //   {
+  //     name: "Transfer",
+  //     icon: ArrowLeftRight,
+  //     color: "bg-banking-primary",
+  //     href: "/customer/transfer",
+  //   },
+  //   {
+  //     name: "Pay Bills",
+  //     icon: Receipt,
+  //     color: "bg-banking-success",
+  //     href: "/customer/transfer",
+  //   },
+  //   {
+  //     name: "Add Money",
+  //     icon: Plus,
+  //     color: "bg-purple-500",
+  //     href: "/customer/cards",
+  //   },
+  //   {
+  //     name: "Cards",
+  //     icon: CreditCard,
+  //     color: "bg-banking-warning",
+  //     href: "/customer/cards",
+  //   },
+  // ];
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -178,7 +178,7 @@ const CustomerDashboard = () => {
           <AccountCarousel accounts={accounts} />
 
           {/* Quick Actions */}
-          <Card className="shadow-banking">
+          {/* <Card className="shadow-banking">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">
                 Quick Actions
@@ -210,7 +210,7 @@ const CustomerDashboard = () => {
                 })}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Recent Transactions */}
           <Card className="shadow-banking">

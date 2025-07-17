@@ -242,10 +242,7 @@ const CustomerProfile = () => {
             <p className="text-gray-600 dark:text-gray-400">Manage your account information and preferences</p>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" className="w-full sm:w-auto">
-              <Download className="w-4 h-4 mr-2" />
-              Export Data
-            </Button>
+
             <Button 
               onClick={() => setIsEditing(!isEditing)}
               className="w-full sm:w-auto"
@@ -573,14 +570,8 @@ const CustomerProfile = () => {
                   <Eye className="w-4 h-4 mr-2" />
                   View Statements
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Card Settings
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Account Preferences
-                </Button>
+               
+
                 <Button variant="outline" className="w-full justify-start">
                   <HelpCircle className="w-4 h-4 mr-2" />
                   Help & Support
@@ -588,26 +579,7 @@ const CustomerProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Account Actions */}
-            <Card className="shadow-banking border-red-200 dark:border-red-800">
-              <CardHeader>
-                <CardTitle className="text-red-600 dark:text-red-400">Account Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Data
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
-              </CardContent>
-            </Card>
+          
           </div>
         </div>
       </div>

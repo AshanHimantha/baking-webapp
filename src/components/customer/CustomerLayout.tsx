@@ -76,8 +76,8 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/customer/dashboard', icon: Home },
-    { name: 'Transactions', href: '/customer/transactions', icon: Receipt },
     { name: 'Transfer', href: '/customer/transfer', icon: ArrowLeftRight },
+    { name: 'Transactions', href: '/customer/transactions', icon: Receipt },
     { name: 'Cards', href: '/customer/cards', icon: CreditCard },
     { name: 'Profile', href: '/customer/profile', icon: User },
   ];

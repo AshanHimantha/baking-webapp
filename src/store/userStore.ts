@@ -85,7 +85,7 @@ export const useUserStore = create<UserState>()(
             ...response.data.data,
             roles: userRoles // Add roles from decoded token to the profile
           };
-          toast.success("User profile loaded successfully.");
+         
           set({ userProfile: profileData, error: null });
         } else {
           set({ error: response.data.message || "Failed to load user profile." });

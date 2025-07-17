@@ -292,7 +292,7 @@ const CustomerTransfer = () => {
             onValueChange={(value) => value && setTransferType(value as 'withinBank' | 'ownAccount' | 'billPayment')}
             className="bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-2"
           >
-            <ToggleGroupItem value="withinBank" aria-label="Transfer within bank" className="px-4 py-2 text-sm font-medium flex items-center gap-2 data-[state=on]:bg-orange-600 data-[state=on]:text-white data-[state=on]:shadow-sm rounded-md transition-colors">
+            <ToggleGroupItem value="withinBank" aria-label="Transfer within bank" className="px-4 py-2 text-sm font-medium flex items-center gap-2 data-[state=on]:bg-orange-500 data-[state=on]:text-white data-[state=on]:shadow-sm rounded-md transition-colors">
               <Landmark className="w-5" />
               Within Bank
             </ToggleGroupItem>
