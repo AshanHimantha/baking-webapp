@@ -74,7 +74,7 @@ const KYC = () => {
             
             // Refresh token when KYC is verified
             try {
-              const currentToken = localStorage.getItem('jwt_token');
+              const currentToken = localStorage.getItem('auth_token');
               console.log('Current token before refresh:', currentToken);
               const refreshResponse = await apiClient.post('/api/auth/refresh-token', {
                 currentToken: currentToken,
@@ -83,7 +83,7 @@ const KYC = () => {
               
               if (refreshResponse.data.token) {
                 // Update localStorage with new token
-                localStorage.setItem('jwt_token', refreshResponse.data.token);
+                localStorage.setItem('auth_token', refreshResponse.data.token);
                 console.log('Token refreshed successfully after KYC verification');
               }
             } catch (error) {
