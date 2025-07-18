@@ -69,19 +69,23 @@ const CustomerDashboard = () => {
   //   },
   // ];
 
+
+  // Make fetchDashboard available for callbacks
+  const fetchDashboard = async () => {
+    try {
+      const res = await apiClient.get("/api/dashboard");
+      setAccounts(res.data.accounts || []);
+      setRecentTransactions(res.data.recentTransactions || []);
+    } catch (e) {
+      console.error("Failed to fetch dashboard data:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res = await apiClient.get("/api/dashboard");
-        setAccounts(res.data.accounts || []);
-        setRecentTransactions(res.data.recentTransactions || []);
-      } catch (e) {
-        console.error("Failed to fetch dashboard data:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -98,15 +102,11 @@ const CustomerDashboard = () => {
           {/* Welcome Section */}
           <div className="animate-fade-in">
 
-            {loading ? (
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 mt-4">
-                Loading...
-              </h1>
-            ) : (
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 mt-4">
-                Good morning, {userProfile.firstName}! 👋
-              </h1>
-            )}
+           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 mt-4">
+  {loading
+    ? "Loading..."
+    : `Good morning, ${userProfile?.firstName || "Guest"}! 👋`}
+</h1>
 
             <p className="text-sm sm:text-base text-muted-foreground">
               Here's your financial overview for today
@@ -177,7 +177,7 @@ const CustomerDashboard = () => {
           </Card>
 
           {/* NEW: Account Carousel */}
-          <AccountCarousel accounts={accounts} />
+          <AccountCarousel accounts={accounts} onAccountAdded={fetchDashboard} />
 
           {/* Quick Actions */}
           {/* <Card className="shadow-banking">

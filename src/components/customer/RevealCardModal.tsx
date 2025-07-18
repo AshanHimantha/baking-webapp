@@ -32,7 +32,7 @@ export const RevealCardModal = ({ isOpen, onOpenChange, onSubmit, loading }: Rev
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-sm mx-auto p-6 rounded-lg">
         <DialogHeader>
           <DialogTitle>Enter Password to Reveal Card</DialogTitle>
         </DialogHeader>
