@@ -20,7 +20,7 @@ export const KYCOnlyRoute: React.FC<KYCOnlyRouteProps> = ({ children }) => {
     // If user already has a role, redirect to appropriate dashboard
     const dashboardPath = userRole === 'CUSTOMER' ? '/customer/dashboard' : 
                          userRole === 'ADMIN' ? '/admin/dashboard' :
-                         userRole === 'EMPLOYEE' ? '/admin/dashboard' : '/';
+                         userRole === 'EMPLOYEE' ? '/admin/customers' : '/';
     return <Navigate to={dashboardPath} replace />;
   }
 

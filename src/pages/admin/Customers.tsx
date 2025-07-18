@@ -29,6 +29,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useUserStore } from "@/store/userStore";
 import { useToast } from "@/hooks/use-toast";
 import { 
   UserManagementAPI, 
@@ -48,10 +49,21 @@ const AdminCustomers = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-  const [filters, setFilters] = useState<SearchFilters>({});
+  const [filters, setFilters] = useState<SearchFilters>({
+    page: 1,
+    limit: 20,
+    accountLevel: undefined,
+    status: undefined,
+    kycStatus: undefined,
+    username: undefined,
+    email: undefined,
+  });
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
+
+  // Get logged-in user profile
+  const userProfile = useUserStore((state) => state.userProfile);
   
   // Confirmation modal states
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
@@ -67,25 +79,29 @@ const AdminCustomers = () => {
   const fetchUsers = async (searchFilters: SearchFilters = {}) => {
     try {
       setSearchLoading(true);
-      
-      // If no filters, try to get all users first
-      if (Object.keys(searchFilters).length === 0) {
-        try {
-          const allUsers = await UserManagementAPI.listAllUsers();
-          setUsers(allUsers);
-          setTotalCount(allUsers.length);
-          setCurrentPage(1);
-          setHasMore(false);
-          return;
-        } catch (error) {
-          console.warn('Failed to fetch all users, falling back to search');
-        }
-      }
-      
-      const response = await UserManagementAPI.searchUsers({
-        ...searchFilters,
-        limit: ITEMS_PER_PAGE,
-      });
+
+      // Always send all query params, even if undefined
+      const {
+        page = 1,
+        limit = ITEMS_PER_PAGE,
+        accountLevel,
+        status,
+        kycStatus,
+        username,
+        email
+      } = searchFilters;
+
+      const params = {
+        page,
+        limit,
+        accountLevel,
+        status,
+        kycStatus,
+        username,
+        email
+      };
+
+      const response = await UserManagementAPI.searchUsers(params);
 
       setUsers(response.users);
       setTotalCount(response.totalCount);
@@ -185,7 +201,11 @@ const AdminCustomers = () => {
       ...filters,
       username: searchValue || undefined,
       email: searchValue || undefined,
-      page: 1
+      page: 1,
+      limit: ITEMS_PER_PAGE,
+      accountLevel: filters.accountLevel || undefined,
+      status: filters.status || undefined,
+      kycStatus: filters.kycStatus || undefined,
     };
     setFilters(newFilters);
     fetchUsers(newFilters);
@@ -226,7 +246,15 @@ const AdminCustomers = () => {
 
   // Handle clear filters
   const handleClearFilters = () => {
-    const clearedFilters = { limit: ITEMS_PER_PAGE };
+    const clearedFilters = {
+      page: 1,
+      limit: ITEMS_PER_PAGE,
+      accountLevel: undefined,
+      status: undefined,
+      kycStatus: undefined,
+      username: undefined,
+      email: undefined,
+    };
     setFilters(clearedFilters);
     setSearchTerm("");
     fetchUsers(clearedFilters);
@@ -234,7 +262,16 @@ const AdminCustomers = () => {
 
   // Handle apply filters
   const handleApplyFilters = () => {
-    const newFilters = { ...filters, page: 1 };
+    const newFilters = {
+      ...filters,
+      page: 1,
+      limit: ITEMS_PER_PAGE,
+      accountLevel: filters.accountLevel || undefined,
+      status: filters.status || undefined,
+      kycStatus: filters.kycStatus || undefined,
+      username: filters.username || undefined,
+      email: filters.email || undefined,
+    };
     setFilters(newFilters);
     fetchUsers(newFilters);
   };
@@ -272,10 +309,10 @@ const AdminCustomers = () => {
         </div>
 
  
-        {/* Search and Stats */}
+        {/* Search, Filters, and Stats */}
         <div className="grid lg:grid-cols-4 gap-6">
           <Card className="lg:col-span-3 shadow-banking">
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -287,6 +324,56 @@ const AdminCustomers = () => {
                 {searchLoading && (
                   <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin" />
                 )}
+              </div>
+              {/* Filter UI */}
+              <div className="flex flex-wrap gap-4 items-end">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Account Level</label>
+                  <select
+                    className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 dark:text-white"
+                    value={filters.accountLevel || ''}
+                    onChange={e => setFilters(f => ({ ...f, accountLevel: e.target.value || undefined }))}
+                  >
+                    <option value="">All</option>
+                    <option value="BRONZE">BRONZE</option>
+                    <option value="GOLD">GOLD</option>
+                    <option value="PLATINUM">PLATINUM</option>
+                    <option value="DIAMOND">DIAMOND</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                  <select
+                    className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 dark:text-white"
+                    value={filters.status || ''}
+                    onChange={e => setFilters(f => ({ ...f, status: e.target.value || undefined }))}
+                  >
+                    <option value="">All</option>
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                    <option value="SUSPENDED">SUSPENDED</option>
+                    <option value="DEACTIVATED">DEACTIVATED</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">KYC Status</label>
+                  <select
+                    className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-900 dark:text-white"
+                    value={filters.kycStatus || ''}
+                    onChange={e => setFilters(f => ({ ...f, kycStatus: e.target.value || undefined }))}
+                  >
+                    <option value="">All</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="VERIFIED">VERIFIED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleApplyFilters}>
+                  <Filter className="w-4 h-4 mr-1" /> Apply Filters
+                </Button>
+                <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+                  Clear
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -394,26 +481,29 @@ const AdminCustomers = () => {
                           <Eye className="w-4 h-4" />
                         </Button>
                     
-                        {user.status === 'SUSPENDED' ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            title="Reactivate User"
-                            onClick={() => handleReactivateClick(user)}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                        ) : (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            title="Suspend User"
-                            onClick={() => handleSuspendClick(user)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
+                        {/* Only show suspend/reactivate if logged-in user is ADMIN */}
+                        {userProfile?.roles?.includes('ADMIN') && (
+                          user.status === 'SUSPENDED' ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              title="Reactivate User"
+                              onClick={() => handleReactivateClick(user)}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              title="Suspend User"
+                              onClick={() => handleSuspendClick(user)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          )
                         )}
                        
                       </div>

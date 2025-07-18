@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useAuthStore } from "@/store/authStore";
+import { useUserStore } from "@/store/userStore";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -48,7 +49,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}`.toUpperCase() || 'AD' : 
     'AD';
 
-  const navigation = [
+  // Get roles from userStore (for more reliable role info)
+  const userProfile = useUserStore((state) => state.userProfile);
+  const roles = userProfile?.roles || [];
+
+  let navigation = [
     { name: 'Overview', href: '/admin/dashboard', icon: BarChart3 },
     { name: 'Customers', href: '/admin/customers', icon: Users },
     { name: 'Transactions', href: '/admin/transactions', icon: Receipt },
@@ -56,6 +61,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Reports', href: '/admin/reports', icon: FileText },
     { name: 'Profile', href: '/admin/profile', icon: User },
   ];
+
+  // Hide Overview and Reports for EMPLOYEE role
+  if (roles.includes('EMPLOYEE')) {
+    navigation = navigation.filter(item => item.name !== 'Overview' && item.name !== 'Reports');
+  }
 
   const isCurrentPath = (path: string) => location.pathname === path;
 

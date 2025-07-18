@@ -56,7 +56,7 @@ const AdminSignIn = () => {
         navigate('/admin/dashboard');
       } else if (userRole === 'EMPLOYEE') {
         toast.success('Employee login successful! Redirecting to admin dashboard...');
-        navigate('/admin/dashboard');
+        navigate('/admin/customers');
       } else {
         toast.error('Access denied. Admin or Employee access required.');
       }

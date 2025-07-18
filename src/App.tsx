@@ -100,24 +100,24 @@ const App = () => { // <--- Make sure App is a functional component
               
               {/* Admin Dashboard Routes */}
               <Route path="/admin/dashboard" element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requiredRole={"ADMIN"}>
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/admin/customers" element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
                   <ErrorBoundary>
                     <AdminCustomers />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />
               <Route path="/admin/transactions" element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
                   <AdminTransactions />
                 </ProtectedRoute>
               } />
               <Route path="/admin/approvals" element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
                   <AdminApprovals />
                 </ProtectedRoute>
               } />
@@ -127,7 +127,7 @@ const App = () => { // <--- Make sure App is a functional component
                 </ProtectedRoute>
               } />
               <Route path="/admin/profile" element={
-                <ProtectedRoute requiredRole="ADMIN">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
                   <AdminProfile />
                 </ProtectedRoute>
               } />

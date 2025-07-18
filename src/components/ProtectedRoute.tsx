@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 
+type Role = 'CUSTOMER' | 'EMPLOYEE' | 'ADMIN';
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'CUSTOMER' | 'EMPLOYEE' | 'ADMIN';
+  requiredRole?: Role | Role[];
   redirectTo?: string;
 }
 
@@ -13,7 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   redirectTo = '/signin'
 }) => {
-  const { isAuthenticated, getUserRole, hasRole, getUser } = useAuthStore();
+  const { isAuthenticated, getUserRole } = useAuthStore();
   const location = useLocation();
 
   // Check if user is authenticated
@@ -21,12 +22,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // Check if user has required role
+  // Check if user has required role (support string or array)
   if (requiredRole) {
     const userRole = getUserRole();
-    
-    // If user doesn't have the required role, check for redirects
-    if (!hasRole(requiredRole)) {
+    const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!requiredRoles.includes(userRole)) {
       // If user role is NONE, redirect to KYC
       if (userRole === 'NONE') {
         return <Navigate to="/kyc" replace />;

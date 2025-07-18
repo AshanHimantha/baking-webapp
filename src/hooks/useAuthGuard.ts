@@ -43,7 +43,9 @@ export const useRedirectIfAuthenticated = (redirectTo?: string) => {
           navigate('/kyc');
         } else if (userRole === 'CUSTOMER') {
           navigate('/customer/dashboard');
-        } else if (userRole === 'EMPLOYEE' || userRole === 'ADMIN') {
+        } else if (userRole === 'EMPLOYEE' ) {
+          navigate('/admin/customers');
+        }else if (userRole === 'ADMIN') {
           navigate('/admin/dashboard');
         }
       }
