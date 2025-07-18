@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import type {
+  GlobalOptions as ConfettiGlobalOptions,
+  CreateTypes as ConfettiInstance,
+  Options as ConfettiOptions,
+} from "canvas-confetti";
+import { Confetti } from "@/components/ui/confetti";
 import CustomerLayout from "@/components/customer/CustomerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,8 +20,9 @@ import {
   EyeOff,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 import AccountCarousel from "@/components/customer/AccountCarousel"; // Import the new component
-import { useUserStore } from '@/store/userStore';
+import { useUserStore } from "@/store/userStore";
 
 const transactionTypeIcon = {
   BILL_PAYMENT: Receipt,
@@ -38,9 +45,44 @@ const CustomerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const userProfile = useUserStore((state) => state.userProfile);
   const fetchUserProfile = useUserStore((state) => state.fetchUserProfile);
+
   const proDetails = useUserStore((state) => state.isLoading);
+  const [claimingGift, setClaimingGift] = useState(false);
+  const confettiRef = useRef(null);
 
+  // Handler for claiming welcome gift
+  const handleClaimGift = async () => {
+    setClaimingGift(true);
+    try {
+      const res = await apiClient.post("/api/gifts/welcome/claim");
+      toast.success(res.data.message || "Gift claimed!");
+      // Debug: log confettiRef
+      setTimeout(() => {
+        // Fire confetti after a short delay to ensure canvas is mounted
+        if (confettiRef.current && typeof confettiRef.current.fire === "function") {
+          confettiRef.current.fire({
+            particleCount: 120,
+            spread: 150,
+            origin: { y: 0.6 },
+          });
+        } else {
+          // eslint-disable-next-line no-console
+          console.log("Confetti ref not ready:", confettiRef.current);
+        }
 
+        
+      }, 1000);
+
+      fetchDashboard();
+      userProfile.giftClaimed = true; // Update user profile state
+      
+    } catch (err) {
+      const msg = err?.response?.data?.error || "Failed to claim gift.";
+      toast.error(msg);
+    } finally {
+      setClaimingGift(false);
+    }
+  };
 
   // const quickActions = [
   //   {
@@ -69,7 +111,6 @@ const CustomerDashboard = () => {
   //   },
   // ];
 
-
   // Make fetchDashboard available for callbacks
   const fetchDashboard = async () => {
     try {
@@ -88,8 +129,6 @@ const CustomerDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-
   const totalBalance = accounts.reduce(
     (sum, acc) => sum + (acc.balance || 0),
     0
@@ -98,15 +137,30 @@ const CustomerDashboard = () => {
   return (
     <CustomerLayout>
       <div className="min-h-screen bg-background rounded-lg border font-geist">
+        {/* Confetti Canvas (hidden, overlays page) */}
+        <Confetti
+          ref={confettiRef}
+          style={{
+            position: "fixed",
+            pointerEvents: "none",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 9999,
+          }}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          manualstart
+        />
         <div className="px-4 py-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {/* Welcome Section */}
           <div className="animate-fade-in">
-
-           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 mt-4">
-  {loading
-    ? "Loading..."
-    : `Good morning, ${userProfile?.firstName || "Guest"}! 👋`}
-</h1>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2 mt-4">
+              {loading
+                ? "Loading..."
+                : `Good morning, ${userProfile?.firstName || "Guest"}! 👋`}
+            </h1>
 
             <p className="text-sm sm:text-base text-muted-foreground">
               Here's your financial overview for today
@@ -118,6 +172,7 @@ const CustomerDashboard = () => {
             <div className="w-full h-full absolute inset-0">
               <div className="w-full h-full bg-[url('/R.jpg')] bg-cover bg-center bg-no-repeat opacity-5"></div>
             </div>
+
             {/* ===== Animated Background Bubbles ===== */}
             <div className="absolute top-0 left-0 w-full h-full z-0">
               <div
@@ -161,15 +216,83 @@ const CustomerDashboard = () => {
                         })}`
                       : "••••••••"}
                   </div>
-                  <div className="flex items-center space-x-2 text-orange-100">
-                    <ArrowUpRight className="w-4 h-4 flex-shrink-0" />
-                    <span className="text-sm sm:text-base">
-                      {accounts.length > 0
-                        ? `${accounts.length} account${
-                            accounts.length > 1 ? "s" : ""
-                          }`
-                        : "No accounts"}
-                    </span>
+                  <div className="flex items-center space-x-2 justify-between w-full">
+                    <div className="flex items-center space-x-1 justify-center">
+                      <ArrowUpRight className="w-4 h-4" />
+                      <span className="text-sm sm:text-base whitespace-nowrap">
+                        {accounts.length > 0
+                          ? `${accounts.length} account${accounts.length > 1 ? "s" : ""}`
+                          : "No accounts"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-end space-x-2 w-full">
+                      
+                      {userProfile && userProfile.giftClaimed === false && (
+                        <div className="relative inline-block p-[2px] rounded-md overflow-hidden group ">
+                          <style>{`
+                            @keyframes rainbowBorder {
+                              0% { background-position: 0% 50%; }
+                              50% { background-position: 100% 50%; }
+                              100% { background-position: 0% 50%; }
+                            }
+
+                            @keyframes shine {
+                              0% {
+                                transform: translateX(-100%);
+                                opacity: 0;
+                              }
+                              50% {
+                                transform: translateX(50%);
+                                opacity: 0.3;
+                              }
+                              100% {
+                                transform: translateX(200%);
+                                opacity: 0;
+                              }
+                            }
+                          `}</style>
+
+                          {/* Rainbow Border */}
+                          <div
+                            className="absolute inset-0 z-0 rounded-md pointer-events-none"
+                            style={{
+                              background:
+                                "linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red)",
+                              backgroundSize: "400% 400%",
+                              animation: "rainbowBorder 6s linear infinite",
+                            }}
+                          />
+
+                          {/* Shine Effect */}
+                          <div className="absolute inset-0 overflow-hidden rounded-md pointer-events-none z-10">
+                            <div className="absolute top-0 left-0 w-1/3 h-full bg-white opacity-10 blur-sm transform -translate-x-full group-hover:animate-[shine_1.5s_ease-in-out] rounded-md"></div>
+                          </div>
+
+                          {/* Actual Button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="relative z-20 bg-black text-white px-4 py-2 rounded-md font-semibold flex items-center space-x-2 hover:scale-105 transition-all duration-300 hover:bg-neutral-900 hover:text-white"
+                            onClick={handleClaimGift}
+                            disabled={claimingGift}
+                          >
+                            <svg
+                              className="w-4 h-4 text-yellow-300"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7" />
+                              <path d="M4 10l8-6 8 6" />
+                            </svg>
+                            <span>{claimingGift ? "Claiming..." : "Claim Gift"}</span>
+                          </Button>
+                        </div>
+                      )}
+
+
+
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -177,7 +300,10 @@ const CustomerDashboard = () => {
           </Card>
 
           {/* NEW: Account Carousel */}
-          <AccountCarousel accounts={accounts} onAccountAdded={fetchDashboard} />
+          <AccountCarousel
+            accounts={accounts}
+            onAccountAdded={fetchDashboard}
+          />
 
           {/* Quick Actions */}
           {/* <Card className="shadow-banking">
