@@ -488,6 +488,11 @@ const KYC = () => {
                         value={personalDetails.dateOfBirth}
                         onChange={handleInputChange('dateOfBirth')}
                         required
+                        max={new Date(
+                          new Date().setFullYear(new Date().getFullYear() - 16)
+                        )
+                          .toISOString()
+                          .split("T")[0]}
                       />
                     </div>
 

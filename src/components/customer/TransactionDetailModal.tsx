@@ -187,53 +187,63 @@ const TransactionDetailModal = ({ isOpen, onClose, details, isLoading }) => {
                     className="mb-6 flex justify-between items-center w-full px-4 relative"
                   >
                     {/* Looping Money Dot Animation */}
-					<motion.div
-						className="absolute"
-						style={{ top: '25%', transform: 'translateY(-10%)' }}
-						animate={{
-							x: [40, 220],
-							opacity: [0, 1, 1, 0],
-						}}
-						transition={{
-							duration: 2.5,
-							ease: "easeInOut",
-							repeat: Infinity,
-							repeatType: "loop",
-							times: [0, 0.2, 0.8, 1],
-						}}
-					>
-						{/* Cash icon from Lucide */}
-						<svg
-							className="w-8 h-8 text-green-500 absolute left-4 top-1/2 transform -translate-y-1/2 z-[10000] "
-							fill="none"
-							stroke="currentColor"
-							strokeWidth={1.5}
-							viewBox="0 0 24 24"
-						>
-							<rect x="2" y="7" width="20" height="10" rx="2" />
-							<circle cx="12" cy="12" r="3" />
-							<path d="M6 7v2a2 2 0 0 1-2 2" />
-							<path d="M18 7v2a2 2 0 0 0 2 2" />
-							<path d="M6 17v-2a2 2 0 0 0-2-2" />
-							<path d="M18 17v-2a2 2 0 0 1 2-2" />
-						</svg>
-					</motion.div>
+          <motion.div
+            className="absolute"
+            style={{ top: '25%', transform: 'translateY(-10%)' }}
+            animate={{
+              x: [40, 220],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              ease: "easeInOut",
+              repeat: Infinity,
+              repeatType: "loop",
+              times: [0, 0.2, 0.8, 1],
+            }}
+          >
+            {/* Cash icon from Lucide */}
+            <svg
+              className="w-8 h-8 text-green-500 absolute left-4 top-1/2 transform -translate-y-1/2 z-[10000] "
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              viewBox="0 0 24 24"
+            >
+              <rect x="2" y="7" width="20" height="10" rx="2" />
+              <circle cx="12" cy="12" r="3" />
+              <path d="M6 7v2a2 2 0 0 1-2 2" />
+              <path d="M18 7v2a2 2 0 0 0 2 2" />
+              <path d="M6 17v-2a2 2 0 0 0-2-2" />
+              <path d="M18 17v-2a2 2 0 0 1 2-2" />
+            </svg>
+          </motion.div>
 
                     {/* From User */}
+
                     <div className="flex flex-col items-center text-center gap-2 z-10 ">
-                      <img
-                        src={
-                          fromOwnerAvatarUrl
-                            ? import.meta.env.VITE_API_BASE_URL +
-                              fromOwnerAvatarUrl
-                            : "/placeholder-avatar.png"
-                        }
-                        alt={fromOwnerName}
-                        className="w-12 h-12 rounded-full object-cover animate-pulse-success "
-                        onError={(e) => {
-                          e.target.src = "/placeholder-avatar.png";
-                        }}
-                      />
+                      {transactionType === "GIFT" ? (
+                        <img
+                          src={"/orbinicon.png"}
+                          alt="Gift"
+                          className="w-16 h-16 rounded-full object-cover animate-pulse-success p-3"
+                        />
+                      ) : fromOwnerAvatarUrl ? (
+                        <img
+                          src={import.meta.env.VITE_API_BASE_URL + fromOwnerAvatarUrl}
+                          alt={fromOwnerName}
+                          className="w-12 h-12 rounded-full object-cover animate-pulse-success "
+                          onError={(e) => {
+                            e.target.src = "/placeholder-avatar.png";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-2xl font-bold text-gray-600 dark:text-gray-300 select-none animate-pulse-success">
+                          {fromOwnerName && fromOwnerName.split(" ").length > 1
+                            ? `${fromOwnerName.split(" ")[0][0] || ''}${fromOwnerName.split(" ").slice(-1)[0][0] || ''}`.toUpperCase()
+                            : fromOwnerName?.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           From
@@ -246,19 +256,22 @@ const TransactionDetailModal = ({ isOpen, onClose, details, isLoading }) => {
 
                     {/* To User */}
                     <div className="flex flex-col items-center text-center gap-2 z-10">
-                      <img
-                        src={
-                          toOwnerAvatarUrl
-                            ? import.meta.env.VITE_API_BASE_URL +
-                              toOwnerAvatarUrl
-                            : "/placeholder-avatar.png"
-                        }
-                        alt={toOwnerName}
-                        className="w-12 h-12 rounded-full object-cover bg-gray-100"
-                        onError={(e) => {
-                          e.target.src = "/placeholder-avatar.png";
-                        }}
-                      />
+                      {toOwnerAvatarUrl ? (
+                        <img
+                          src={import.meta.env.VITE_API_BASE_URL + toOwnerAvatarUrl}
+                          alt={toOwnerName}
+                          className="w-12 h-12 rounded-full object-cover bg-gray-100"
+                          onError={(e) => {
+                            e.target.src = "/placeholder-avatar.png";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xl font-bold text-gray-600 dark:text-gray-300 select-none">
+                          {toOwnerName && toOwnerName.split(" ").length > 1
+                            ? `${toOwnerName.split(" ")[0][0] || ''}${toOwnerName.split(" ").slice(-1)[0][0] || ''}`.toUpperCase()
+                            : toOwnerName?.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           To

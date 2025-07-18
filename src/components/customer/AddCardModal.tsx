@@ -86,7 +86,7 @@ export function AddCardModal({ isOpen, onOpenChange, onSuccess }: AddCardModalPr
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className=" items-center gap-4 ">
               <Label htmlFor="accountNumber" className="text-right">
                 From Account
               </Label>
@@ -99,8 +99,8 @@ export function AddCardModal({ isOpen, onOpenChange, onSuccess }: AddCardModalPr
                 />
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="nickname" className="text-right">
+            <div className="grid  items-center gap-4">
+              <Label htmlFor="nickname" className="text-start">
                 Nickname
               </Label>
               <Input
@@ -112,8 +112,8 @@ export function AddCardModal({ isOpen, onOpenChange, onSuccess }: AddCardModalPr
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="limit" className="text-right">
+            <div className="grid  items-center gap-4">
+              <Label htmlFor="limit" className="text-start">
                 Spending Limit ($)
               </Label>
               <Input
@@ -128,7 +128,7 @@ export function AddCardModal({ isOpen, onOpenChange, onSuccess }: AddCardModalPr
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className=' bg-orange-500 hover:bg-orange-600'>
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (

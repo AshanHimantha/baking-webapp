@@ -51,7 +51,7 @@ export function CardSettingsModal({ isOpen, onOpenChange, onSuccess, card }: Car
     e.preventDefault();
     setIsLimitLoading(true);
     try {
-      await apiClient.put(`/api/cards/virtual/${card.id}/limit`, {
+      await apiClient.pu(`/api/cards/virtual/${card.id}/limit`, {
         newLimit: parseFloat(newLimit)
       });
       toast.success("Spending limit updated successfully!");
@@ -102,7 +102,7 @@ export function CardSettingsModal({ isOpen, onOpenChange, onSuccess, card }: Car
           
           <TabsContent value="limit">
             <form onSubmit={handleLimitSubmit}>
-              <div className="grid gap-4 py-4">
+              <div className="gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="new-limit" className="text-right">
                     New Limit ($)
@@ -118,7 +118,7 @@ export function CardSettingsModal({ isOpen, onOpenChange, onSuccess, card }: Car
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isLimitLoading}>
+                <Button type="submit" disabled={isLimitLoading} className=' bg-orange-500 hover:bg-orange-600'>
                   {isLimitLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Limit
                 </Button>
@@ -158,7 +158,7 @@ export function CardSettingsModal({ isOpen, onOpenChange, onSuccess, card }: Car
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={isPinLoading}>
+                <Button type="submit" disabled={isPinLoading} className=' bg-orange-500 hover:bg-orange-600'>
                   {isPinLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Set PIN
                 </Button>

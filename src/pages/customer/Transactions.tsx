@@ -19,6 +19,7 @@ import {
   LogOut,
   HelpCircle,
   MoreVertical,
+  Gift as GiftIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,6 +52,7 @@ const APITransactionTypes = [
   { value: "TRANSFER", label: "Transfer" },
   { value: "BILL_PAYMENT", label: "Bill Payment" },
   { value: "TOP_UP", label: "Top Up" },
+  { value: "GIFT", label: "Gift" },
   { value: "FEE", label: "Fee" },
   { value: "INTEREST_PAYOUT", label: "Interest Payout" },
   { value: "WITHDRAWAL", label: "Withdrawal" },
@@ -99,7 +101,7 @@ const CustomerTransactions = () => {
       "No description provided";
 
     switch (transaction.transactionType) {
-      case "TRANSFER":
+      case "TRANSFER": {
         const isIncomeTransfer = transaction.toAccountNumber === currentAccount;
         type = isIncomeTransfer ? "income" : "expense";
         merchantName = isIncomeTransfer
@@ -109,6 +111,7 @@ const CustomerTransactions = () => {
         colorClass = isIncomeTransfer ? "bg-green-500" : "bg-blue-500";
         category = "Transfer";
         break;
+      }
       case "BILL_PAYMENT":
         type = "expense";
         merchantName = transaction.description || "Bill Payment";
@@ -123,6 +126,17 @@ const CustomerTransactions = () => {
         colorClass = "bg-purple-500";
         category = "Top-Up";
         break;
+      case "GIFT": {
+        const isGiftReceived = transaction.toAccountNumber === currentAccount;
+        type = isGiftReceived ? "income" : "expense";
+        merchantName = isGiftReceived
+          ? `Gift from: ${transaction.fromAccountNumber || "Unknown Account"}`
+          : `Gift to: ${transaction.toAccountNumber || "Unknown Account"}`;
+        IconComponent = GiftIcon;
+        colorClass = isGiftReceived ? "bg-pink-500" : "bg-pink-400";
+        category = "Gift";
+        break;
+      }
       case "FEE":
         type = "expense";
         merchantName = transaction.description || "Bank Fee";
@@ -572,21 +586,23 @@ const CustomerTransactions = () => {
                             {transaction.date}
                           </p>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
-                              <MoreVertical className="w-5 h-5 text-gray-500" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleDownloadReceipt(transaction.id)}>
-                              <Download className="w-4 h-4 mr-2" /> Download PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenTransactionDetails(transaction.id)}>
-                              View Details
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {transaction.originalTransactionType !== 'GIFT' && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                                <MoreVertical className="w-5 h-5 text-gray-500" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleDownloadReceipt(transaction.id)}>
+                                <Download className="w-4 h-4 mr-2" /> Download PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleOpenTransactionDetails(transaction.id)}>
+                                View Details
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </div>
                   );

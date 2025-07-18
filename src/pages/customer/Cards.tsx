@@ -184,14 +184,13 @@ const CustomerCards = () => {
             const isCardActive = card.status === "ACTIVE";
             const cardColor = gradientColors[index % gradientColors.length];
             const cardBgImage = bgImages[index % bgImages.length];
+            const cardOpacity = isCardActive ? "opacity-100" : "opacity-50";
 
             return (
-              <div key={card.id} className="space-y-4">
-                
-
+              <div key={card.id} className={"space-y-4 "}>
                 {/* Card UI */}
                 <div
-                  className={`relative flex-shrink-0 rounded-2xl text-white p-6 flex flex-col justify-between overflow-hidden transform transition-transform duration-300 hover:scale-105 bg-gradient-to-br ${cardColor} shadow-lg`}
+                  className={`relative flex-shrink-0 rounded-2xl text-white p-6 flex  flex-col justify-between overflow-hidden transform transition-transform duration-300 hover:scale-105 bg-gradient-to-br ${cardColor} shadow-lg ${cardOpacity}`}
                 >
                   {/* Background image */}
                   <div className="absolute inset-0 z-0">
@@ -280,10 +279,10 @@ const CustomerCards = () => {
                 
 
                 {/* Card Controls */}
-                <Card className="p-1">
+                <Card className={"p-1"}>
 
-<div className="w-full  border-gray-200 border  ">
-                  <div className="flex items-center justify-between gap-2 px-4 py-2 bg-white rounded-md rounded-b-none  hover:shadow-lg transition-shadow duration-200 ease-in-out">
+<div className="w-full  border-gray-200 border border-t-md rounded-md ">
+                  <div className="flex items-center justify-between gap-2 px-6 py-2 bg-white rounded-md rounded-b-none  hover:shadow-lg transition-shadow duration-200 ease-in-out">
                     <div className="text-sm text-gray-700 font-semibold">
                       <span className="block text-gray-400 text-xs uppercase">
                         Account No

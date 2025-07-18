@@ -63,7 +63,7 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
       <CardContent className="space-y-3 text-sm">
         <div className="flex justify-between items-center">
           <span className="font-medium">Amount:</span>
-          <span className="text-lg font-bold text-blue-600">${formattedAmount}</span>
+          <span className="text-lg font-bold text-orange-500">${formattedAmount}</span>
         </div>
         <div className="flex justify-between">
           <span className="font-medium">{destinationLabel}</span>
@@ -82,7 +82,7 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
         <Button
           onClick={onTransfer}
           disabled={isTransferDisabled}
-          className="w-full"
+          className="w-full bg-orange-500"
         >
           {isRecurring ? "Schedule Transfer" : "Confirm Transfer"}
         </Button>
