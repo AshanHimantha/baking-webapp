@@ -17,6 +17,7 @@ import {
   Unlock,
   Lock,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import AccountTypeBadge from "@/components/common/AccountTypeBadge";
@@ -135,6 +136,19 @@ const CustomerCards = () => {
       setCards((prev) =>
         prev.map((c) => (c.id === card.id ? { ...c, status: card.status } : c))
       );
+    }
+  };
+
+  const handleDeleteCard = async (card: IVirtualCard) => {
+    if (!confirm("Are you sure you want to delete this card?")) return;
+
+    try {
+      await apiClient.delete(`/api/cards/virtual/${card.id}`);
+      setCards((prev) => prev.filter((c) => c.id !== card.id));
+      toast.success("Card deleted successfully.");
+    } catch (err) {
+      toast.error("Failed to delete card. Please try again.");
+      console.error(err);
     }
   };
 
@@ -303,13 +317,15 @@ const CustomerCards = () => {
                           ${card.spendingLimit.toLocaleString()}
                         </p>
                       </div>
-                      <div
-                        onClick={() => {
-                          setSelectedCard(card);
-                          setIsSettingsModalOpen(true);
-                        }}
-                      >
-                        <Settings className="w-4 h-4 cursor-pointer" />
+                      <div className="flex space-x-4">
+                        <Settings
+                          className="w-5 h-5 cursor-pointer"
+                          onClick={() => {
+                            setSelectedCard(card);
+                            setIsSettingsModalOpen(true);
+                          }}
+                        />
+                        <Trash2 className="w-5 h-5 cursor-pointer text-red-500" onClick={() => handleDeleteCard(card)} />
                       </div>
                     </div>
                     <div className="flex items-center justify-between">

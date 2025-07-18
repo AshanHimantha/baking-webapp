@@ -82,7 +82,7 @@ const TransferSummaryCard: React.FC<TransferSummaryCardProps> = ({
         <Button
           onClick={onTransfer}
           disabled={isTransferDisabled}
-          className="w-full bg-orange-500"
+          className="w-full bg-orange-500 hover:bg-orange-600"
         >
           {isRecurring ? "Schedule Transfer" : "Confirm Transfer"}
         </Button>

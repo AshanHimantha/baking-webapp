@@ -69,7 +69,7 @@ const TransferSuccessConfirmation: React.FC<TransferSuccessConfirmationProps> = 
         <div className="text-gray-600 dark:text-gray-400 text-sm">
           <p>Confirmation will be sent to your email.</p>
         </div>
-        <Button onClick={onMakeAnotherTransfer} className="w-full">
+        <Button onClick={onMakeAnotherTransfer} className="w-full bg-orange-500 hover:bg-orange-600">
           Make Another {transferType === 'billPayment' ? 'Payment' : 'Transfer'}
         </Button>
       </CardContent>
