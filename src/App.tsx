@@ -29,6 +29,7 @@ import NotFound from "./pages/NotFound";
 
 import { useEffect } from "react"; // <--- IMPORT useEffect
 import { useUserStore } from "@/store/userStore"; // <--- IMPORT YOUR STORE
+import AdminDeposit from "./pages/admin/Deposit";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,9 @@ const App = () => { // <--- Make sure App is a functional component
                   <CustomerProfile />
                 </ProtectedRoute>
               } />
+
+              
+
               
               {/* Admin Dashboard Routes */}
               <Route path="/admin/dashboard" element={
@@ -133,6 +137,14 @@ const App = () => { // <--- Make sure App is a functional component
                   <AdminProfile />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/deposit" element={
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
+                  <AdminDeposit />
+                </ProtectedRoute>
+              } />
+
+  
+
               
               <Route path="*" element={<NotFound />} />
             </Routes>

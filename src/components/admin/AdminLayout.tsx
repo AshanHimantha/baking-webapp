@@ -67,6 +67,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Transactions', href: '/admin/transactions', icon: Receipt },
     { name: 'Approvals', href: '/admin/approvals', icon: CheckCircle },
     { name: 'Profile', href: '/admin/profile', icon: User },
+    { name: 'Deposit', href: '/admin/deposit', icon: Receipt },
   ];
 
   // Hide Overview and Reports for EMPLOYEE role

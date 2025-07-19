@@ -116,6 +116,11 @@ All colors MUST be HSL.
   display: none; /* Chrome, Safari, and Opera */
 }
 
+
+html {
+  scroll-behavior: smooth;
+}
+
 /* Add this to your global CSS file (e.g., globals.css) */
 
 @keyframes animate-gradient {

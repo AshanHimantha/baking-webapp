@@ -15,8 +15,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <Building2 className="w-8 h-8 text-banking-primary" />
-              <span className="text-xl font-bold text-gray-900">MyBank</span>
+              <img src="/orbinw1.png" alt="MyBank Logo" className="h-11 " />
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
@@ -379,8 +378,8 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <Building2 className="w-8 h-8 text-banking-primary" />
-                <span className="text-xl font-bold">MyBank</span>
+                <img src="/orbinw1.png" alt="MyBank Logo" className="h-10 bg-white px-4 rounded-sm" />
+
               </div>
               <p className="text-gray-400">
                 Next-generation digital banking designed for the modern world.
@@ -434,7 +433,8 @@ const Index = () => {
           
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm">
-              © 2024 MyBank. All rights reserved.
+           © 2025 Orbin Bank. All rights reserved. <span className="mx-2">|</span>
+            Developed by <a href="https://ashanhimantha.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">Ashan Himantha</a>
             </div>
             <div className="flex space-x-6 text-sm text-gray-400 mt-4 md:mt-0">
               <div className="hover:text-white cursor-pointer">Terms of Service</div>
