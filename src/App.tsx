@@ -30,6 +30,7 @@ import NotFound from "./pages/NotFound";
 import { useEffect } from "react"; // <--- IMPORT useEffect
 import { useUserStore } from "@/store/userStore"; // <--- IMPORT YOUR STORE
 import AdminDeposit from "./pages/admin/Deposit";
+import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +61,7 @@ const App = () => { // <--- Make sure App is a functional component
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route
