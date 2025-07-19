@@ -22,8 +22,9 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCustomers from "./pages/admin/Customers";
 import AdminTransactions from "./pages/admin/Transactions";
 import AdminApprovals from "./pages/admin/Approvals";
-import AdminReports from "./pages/admin/Reports";
+
 import AdminProfile from "./pages/admin/Profile";
+import UserAudit from "./pages/admin/UserAudit";
 import NotFound from "./pages/NotFound";
 
 import { useEffect } from "react"; // <--- IMPORT useEffect
@@ -73,27 +74,27 @@ const App = () => { // <--- Make sure App is a functional component
               
               {/* Customer Banking Routes */}
               <Route path="/customer/dashboard" element={
-                <ProtectedRoute requiredRole="CUSTOMER">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE", "CUSTOMER"]}>
                   <CustomerDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/customer/transactions" element={
-                <ProtectedRoute requiredRole="CUSTOMER">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE", "CUSTOMER"]}>
                   <CustomerTransactions />
                 </ProtectedRoute>
               } />
               <Route path="/customer/transfer" element={
-                <ProtectedRoute requiredRole="CUSTOMER">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE", "CUSTOMER"]}>
                   <CustomerTransfer />
                 </ProtectedRoute>
               } />
               <Route path="/customer/cards" element={
-                <ProtectedRoute requiredRole="CUSTOMER">
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE", "CUSTOMER"]}>
                   <CustomerCards />
                 </ProtectedRoute>
               } />
               <Route path="/customer/profile" element={
-                <ProtectedRoute requiredRole="CUSTOMER">
+                <ProtectedRoute  requiredRole={["ADMIN", "EMPLOYEE", "CUSTOMER"]}>
                   <CustomerProfile />
                 </ProtectedRoute>
               } />
@@ -116,16 +117,17 @@ const App = () => { // <--- Make sure App is a functional component
                   <AdminTransactions />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/user-audit/:username" element={
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
+                  <UserAudit />
+                </ProtectedRoute>
+              } />
               <Route path="/admin/approvals" element={
                 <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
                   <AdminApprovals />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/reports" element={
-                <ProtectedRoute requiredRole="ADMIN">
-                  <AdminReports />
-                </ProtectedRoute>
-              } />
+           
               <Route path="/admin/profile" element={
                 <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
                   <AdminProfile />

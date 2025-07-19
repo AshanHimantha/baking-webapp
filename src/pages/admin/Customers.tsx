@@ -26,8 +26,10 @@ import {
   XCircle,
   AlertTriangle,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  FileSearch
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useUserStore } from "@/store/userStore";
 import { useToast } from "@/hooks/use-toast";
@@ -418,7 +420,7 @@ const AdminCustomers = () => {
                   <div key={user.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <div className="flex items-center space-x-4">
                       <Avatar className="w-12 h-12">
-                        <AvatarImage src={UserUtils.getProfilePictureUrl(user) || "/placeholder.svg"} />
+                        <AvatarImage src={UserUtils.getProfilePictureUrl(user) || "/placeholder.svg"} className="object-cover" />
                         <AvatarFallback className="bg-blue-600 text-white">
                           {UserUtils.getInitials(user)}
                         </AvatarFallback>
@@ -480,7 +482,16 @@ const AdminCustomers = () => {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                    
+                        <Link to={`/admin/user-audit/${user.username}`} target="_blank">
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            title="View Audit Trail"
+                            className="text-blue-600 hover:text-blue-700 w-full mt-1"
+                          >
+                            <FileSearch className="w-4 h-4 mr-1" /> Audit
+                          </Button>
+                        </Link>
                         {/* Only show suspend/reactivate if logged-in user is ADMIN */}
                         {userProfile?.roles?.includes('ADMIN') && (
                           user.status === 'SUSPENDED' ? (
@@ -505,7 +516,6 @@ const AdminCustomers = () => {
                             </Button>
                           )
                         )}
-                       
                       </div>
                     </div>
                   </div>

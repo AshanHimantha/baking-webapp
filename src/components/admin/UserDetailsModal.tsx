@@ -98,7 +98,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             <CardHeader>
               <div className="flex items-center space-x-4">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={UserUtils.getProfilePictureUrl(user) || "/placeholder.svg"} />
+                  <AvatarImage src={UserUtils.getProfilePictureUrl(user) || "/placeholder.svg"} className="object-cover"/>
                   <AvatarFallback className="bg-blue-600 text-white text-lg">
                     {UserUtils.getInitials(user)}
                   </AvatarFallback>

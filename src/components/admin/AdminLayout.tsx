@@ -49,16 +49,23 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}`.toUpperCase() || 'AD' : 
     'AD';
 
-  // Get roles from userStore (for more reliable role info)
+  // Get roles and avatar from userStore (for more reliable role info)
   const userProfile = useUserStore((state) => state.userProfile);
   const roles = userProfile?.roles || [];
+
+  // Avatar logic
+  const displayAvatarUrl = userProfile?.hasAvatar && userProfile?.avatarUrl
+    ? import.meta.env.VITE_API_BASE_URL + userProfile.avatarUrl
+    : undefined;
+  const displayUserInitials = userProfile?.firstName && userProfile?.lastName
+    ? `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase()
+    : (userProfile?.username?.slice(0, 2).toUpperCase() || 'AD');
 
   let navigation = [
     { name: 'Overview', href: '/admin/dashboard', icon: BarChart3 },
     { name: 'Customers', href: '/admin/customers', icon: Users },
     { name: 'Transactions', href: '/admin/transactions', icon: Receipt },
     { name: 'Approvals', href: '/admin/approvals', icon: CheckCircle },
-    { name: 'Reports', href: '/admin/reports', icon: FileText },
     { name: 'Profile', href: '/admin/profile', icon: User },
   ];
 
@@ -128,22 +135,25 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
         {/* Admin info at bottom of sidebar */}
         <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback className="bg-purple-600 text-white">{adminInitials}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {adminName}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {adminEmail}
-                </p>
-              </div>
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <div className="flex items-center space-x-3">
+            <Avatar className="w-10 h-10">
+              {userProfile?.hasAvatar && displayAvatarUrl ? (
+                <AvatarImage src={displayAvatarUrl} alt="@admin" className="object-cover" />
+              ) : (
+                <AvatarFallback className="bg-purple-600 text-white">{displayUserInitials}</AvatarFallback>
+              )}
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {adminName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {adminEmail}
+              </p>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -200,8 +210,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg" alt="@admin" />
-                      <AvatarFallback className="bg-purple-600 text-white">{adminInitials}</AvatarFallback>
+                      {userProfile?.hasAvatar && displayAvatarUrl ? (
+                        <AvatarImage src={displayAvatarUrl} alt="@admin" className="object-cover" />
+                      ) : (
+                        <AvatarFallback className="bg-purple-600 text-white">{displayUserInitials}</AvatarFallback>
+                      )}
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -221,6 +234,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {/* Show Customer Dashboard if user has CUSTOMER role */}
+                  {roles.includes('CUSTOMER') && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/customer/dashboard" className="cursor-pointer">
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        Customer Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />

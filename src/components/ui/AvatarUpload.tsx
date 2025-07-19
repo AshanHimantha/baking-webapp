@@ -205,7 +205,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                 <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <Avatar className="w-10 h-10">
-                      <AvatarImage src={avatarUrl} />
+                      <AvatarImage src={avatarUrl} className="object-cover" />
                       <AvatarFallback>{userInitials}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm">Current picture</span>

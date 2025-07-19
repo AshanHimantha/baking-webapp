@@ -181,7 +181,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             <div className="flex items-center space-x-3">
               <Avatar className="w-8 h-8 lg:w-10 lg:h-10 flex-shrink-0">
                 {userProfile?.hasAvatar && displayAvatarUrl ? (
-                  <AvatarImage src={displayAvatarUrl} alt={`@${displayUserName.toLowerCase().replace(' ', '')}`} />
+                  <AvatarImage src={displayAvatarUrl} alt={`@${displayUserName.toLowerCase().replace(' ', '')}`} className="object-cover" />
                 ) : (
                   <AvatarFallback className="bg-banking-primary text-white text-sm lg:text-base">{displayUserInitials}</AvatarFallback>
                 )}
@@ -248,7 +248,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
                   <Button variant="ghost" className="relative h-8 w-8 lg:h-9 lg:w-9 rounded-full p-0">
                     <Avatar className="h-8 w-8 lg:h-9 lg:w-9">
                       {userProfile?.hasAvatar && displayAvatarUrl ? (
-                        <AvatarImage src={displayAvatarUrl} alt={`@${displayUserName.toLowerCase().replace(' ', '')}`} />
+                        <AvatarImage src={displayAvatarUrl} alt={`@${displayUserName.toLowerCase().replace(' ', '')}`} className="object-cover" />
                       ) : (
                         <AvatarFallback className="bg-banking-primary text-white text-sm">{displayUserInitials}</AvatarFallback>
                       )}

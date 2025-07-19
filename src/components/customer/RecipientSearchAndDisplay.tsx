@@ -173,6 +173,7 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
           <div className="flex items-center gap-4 w-full md:w-auto">
             <Avatar className="h-16 w-16 shadow-md">
               <AvatarImage
+              className="object-cover"
                 src={import.meta.env.VITE_API_BASE_URL + recipient.profilePictureUrl}
                 alt={`${recipient.firstName}'s avatar`}
               />

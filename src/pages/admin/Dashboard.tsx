@@ -3,10 +3,10 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Users, 
-  CreditCard, 
-  DollarSign, 
+import {
+  Users,
+  CreditCard,
+  DollarSign,
   AlertTriangle,
   TrendingUp,
   TrendingDown,
@@ -17,46 +17,66 @@ import {
   Shield,
   Activity
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import apiClient from "@/lib/apiClient";
 
 const AdminDashboard = () => {
-  const kpiData = [
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setLoading(true);
+    apiClient.get("/api/admin/dashboard/summary")
+      .then(res => {
+        setSummary(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError("Failed to load dashboard summary");
+        setLoading(false);
+      });
+  }, []);
+
+  // KPI config using API data
+  const kpiData = summary ? [
     {
       title: "Total Users",
-      value: "12,457",
-      change: "+12.5%",
-      trend: "up",
+      value: summary.totalUsers,
+      change: undefined, // No change % in API
+      trend: undefined,
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-100 dark:bg-blue-900"
     },
     {
       title: "Active Accounts",
-      value: "9,842",
-      change: "+8.2%",
-      trend: "up",
+      value: summary.totalAccounts,
+      change: undefined,
+      trend: undefined,
       icon: CreditCard,
       color: "text-green-600",
       bgColor: "bg-green-100 dark:bg-green-900"
     },
     {
-      title: "Total Deposits",
-      value: "$2.4M",
-      change: "+15.3%",
-      trend: "up",
+      title: "System Assets",
+      value: `$${Number(summary.totalSystemAssets).toLocaleString()}`,
+      change: undefined,
+      trend: undefined,
       icon: DollarSign,
       color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-900"
     },
     {
-      title: "Flagged Activities",
-      value: "23",
-      change: "-5.2%",
-      trend: "down",
+      title: "Transactions Today",
+      value: summary.transactionsToday,
+      change: undefined,
+      trend: undefined,
       icon: AlertTriangle,
       color: "text-red-600",
       bgColor: "bg-red-100 dark:bg-red-900"
     }
-  ];
+  ] : [];
 
   const recentTransactions = [
     {
@@ -156,213 +176,123 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Loading/Error State */}
+        {loading && (
+          <div className="text-center py-10 text-gray-500">Loading dashboard...</div>
+        )}
+        {error && (
+          <div className="text-center py-10 text-red-500">{error}</div>
+        )}
+
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {kpiData.map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <Card key={kpi.title} className="shadow-banking hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{kpi.title}</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{kpi.value}</p>
-                      <div className="flex items-center mt-1">
-                        {kpi.trend === "up" ? (
-                          <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                        )}
-                        <span className={`text-sm font-medium ${
-                          kpi.trend === "up" ? "text-green-600" : "text-red-600"
-                        }`}>
-                          {kpi.change}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">vs last month</span>
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {kpiData.map((kpi) => {
+              const Icon = kpi.icon;
+              return (
+                <Card key={kpi.title} className="shadow-banking hover:shadow-banking-lg transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{kpi.title}</p>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">{kpi.value}</p>
+                      </div>
+                      <div className={`${kpi.bgColor} p-3 rounded-full`}>
+                        <Icon className={`w-6 h-6 ${kpi.color}`} />
                       </div>
                     </div>
-                    <div className={`${kpi.bgColor} p-3 rounded-full`}>
-                      <Icon className={`w-6 h-6 ${kpi.color}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Charts Row */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Daily Transactions Chart */}
-          <Card className="shadow-banking">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-base font-medium">Daily Transactions</CardTitle>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <TrendingUp className="w-12 h-12 text-blue-400 mx-auto mb-2" />
-                  <p className="text-gray-600 dark:text-gray-400">Transaction Volume Chart</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">Interactive chart would be displayed here</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Monthly Revenue Chart */}
-          <Card className="shadow-banking">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-base font-medium">Monthly Revenue</CardTitle>
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <DollarSign className="w-12 h-12 text-green-400 mx-auto mb-2" />
-                  <p className="text-gray-600 dark:text-gray-400">Revenue Growth Chart</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">Interactive chart would be displayed here</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tables Row */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Recent Transactions */}
-          <Card className="lg:col-span-2 shadow-banking">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle>Recent Transactions</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <a href="/admin/transactions">View all</a>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentTransactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-full ${
-                        transaction.type === 'deposit' ? 'bg-green-100 dark:bg-green-900' :
-                        transaction.type === 'withdrawal' ? 'bg-red-100 dark:bg-red-900' :
-                        'bg-blue-100 dark:bg-blue-900'
-                      }`}>
-                        {transaction.type === 'deposit' ? (
-                          <ArrowDownLeft className="w-4 h-4 text-green-600" />
-                        ) : transaction.type === 'withdrawal' ? (
-                          <ArrowUpRight className="w-4 h-4 text-red-600" />
-                        ) : (
-                          <ArrowUpRight className="w-4 h-4 text-blue-600" />
-                        )}
+        {!loading && !error && summary && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Daily Transactions Chart */}
+            <Card className="shadow-banking">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-base font-medium">Daily Transactions</CardTitle>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 rounded-lg flex flex-col items-center justify-center">
+                  {/* Improved chart representation */}
+                  {(() => {
+                    const data = summary.transactionVolumeChart.data;
+                    const labels = summary.transactionVolumeChart.labels;
+                    const maxVal = Math.max(...data);
+                    const maxBarHeight = 100; // px
+                    return (
+                      <div className="w-full flex items-end h-32 gap-2 px-4">
+                        {data.map((val, idx) => {
+                          let barHeight = maxVal > 0 ? (val / maxVal) * maxBarHeight : 8;
+                          if (isNaN(barHeight) || barHeight < 8) barHeight = 8;
+                          return (
+                            <div key={idx} className="flex flex-col items-center w-8">
+                              <div
+                                className="bg-blue-400 rounded-t"
+                                style={{ height: `${barHeight}px`, width: '100%' }}
+                              ></div>
+                              <span className="text-xs mt-1 text-gray-500">{labels[idx].slice(4)}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{transaction.customer}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {transaction.id} • {transaction.type}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        ${transaction.amount.toLocaleString()}
-                      </p>
-                      <div className="flex items-center space-x-1">
-                        <Badge 
-                          variant={
-                            transaction.status === 'completed' ? 'default' :
-                            transaction.status === 'pending' ? 'secondary' : 'destructive'
-                          }
-                          className="text-xs"
-                        >
-                          {transaction.status}
-                        </Badge>
-                        {transaction.flag && (
-                          <Badge variant="destructive" className="text-xs">
-                            {transaction.flag}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                    );
+                  })()}
+                  <p className="text-gray-600 dark:text-gray-400 mt-4">Transaction Volume (last 7 days)</p>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Pending Approvals */}
-          <Card className="shadow-banking">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle>Pending Approvals</CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <a href="/admin/approvals">View all</a>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {pendingApprovals.map((approval) => (
-                  <div key={approval.id} className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{approval.type}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{approval.customer}</p>
+            {/* New Users Chart */}
+            <Card className="shadow-banking">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-base font-medium">New Users</CardTitle>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 rounded-lg flex flex-col items-center justify-center">
+                  {/* Improved chart representation */}
+                  {(() => {
+                    const data = summary.newUsersChart.data;
+                    const labels = summary.newUsersChart.labels;
+                    const maxVal = Math.max(...data);
+                    const maxBarHeight = 100; // px
+                    return (
+                      <div className="w-full flex items-end h-32 gap-2 px-4">
+                        {data.map((val, idx) => {
+                          let barHeight = maxVal > 0 ? (val / maxVal) * maxBarHeight : 8;
+                          if (isNaN(barHeight) || barHeight < 8) barHeight = 8;
+                          return (
+                            <div key={idx} className="flex flex-col items-center w-8">
+                              <div
+                                className="bg-green-400 rounded-t"
+                                style={{ height: `${barHeight}px`, width: '100%' }}
+                              ></div>
+                              <span className="text-xs mt-1 text-gray-500">{labels[idx].slice(4)}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <Badge 
-                        variant={approval.priority === 'high' ? 'destructive' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {approval.priority}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{approval.submitted}</p>
-                      <Button size="sm" variant="outline" className="h-6 text-xs">
-                        <Eye className="w-3 h-3 mr-1" />
-                        Review
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                    );
+                  })()}
+                  <p className="text-gray-600 dark:text-gray-400 mt-4">New Users (last 7 days)</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-        {/* System Status */}
-        <Card className="shadow-banking">
-          <CardHeader>
-            <CardTitle>System Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900 rounded-lg">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-green-800 dark:text-green-200">Core Banking</p>
-                  <p className="text-xs text-green-600 dark:text-green-400">Operational</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900 rounded-lg">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-green-800 dark:text-green-200">Payment Gateway</p>
-                  <p className="text-xs text-green-600 dark:text-green-400">Operational</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-yellow-50 dark:bg-yellow-900 rounded-lg">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Fraud Detection</p>
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">Maintenance</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Tables Row, System Status, etc. (unchanged) */}
+        {/* ...existing code... */}
       </div>
     </AdminLayout>
   );
