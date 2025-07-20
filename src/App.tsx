@@ -33,6 +33,7 @@ import AdminDeposit from "./pages/admin/Deposit";
 import LandingPage from "./pages/LandingPage";
 import AdminEmployees from "./pages/admin/Employees";
 import AdminInterestRates from "./pages/admin/AdminInterestRates";
+import AdminBillers from "./pages/admin/AdminBillers";
 
 
 const queryClient = new QueryClient();
@@ -157,6 +158,13 @@ const App = () => { // <--- Make sure App is a functional component
                 <ProtectedRoute requiredRole={"ADMIN"}>
                   <ErrorBoundary>
                     <AdminInterestRates />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/billers" element={
+                <ProtectedRoute requiredRole={"ADMIN"}>
+                  <ErrorBoundary>
+                    <AdminBillers />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />

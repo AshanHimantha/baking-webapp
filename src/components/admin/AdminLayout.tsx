@@ -70,6 +70,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     { name: 'Deposit', href: '/admin/deposit', icon: Receipt },
     { name: 'Employees', href: '/admin/employees', icon: Users },
     { name: 'Interest Rates', href: '/admin/interest-rates', icon: FileText },
+    { name: 'Billers', href: '/admin/billers', icon: Building2 },
+
 
   ];
 
