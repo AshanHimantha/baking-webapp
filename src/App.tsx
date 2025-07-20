@@ -31,6 +31,9 @@ import { useEffect } from "react"; // <--- IMPORT useEffect
 import { useUserStore } from "@/store/userStore"; // <--- IMPORT YOUR STORE
 import AdminDeposit from "./pages/admin/Deposit";
 import LandingPage from "./pages/LandingPage";
+import AdminEmployees from "./pages/admin/Employees";
+import AdminInterestRates from "./pages/admin/AdminInterestRates";
+
 
 const queryClient = new QueryClient();
 
@@ -143,6 +146,24 @@ const App = () => { // <--- Make sure App is a functional component
                   <AdminDeposit />
                 </ProtectedRoute>
               } />
+              <Route path="/admin/employees" element={
+                <ProtectedRoute requiredRole={["ADMIN", "EMPLOYEE"]}>
+                  <ErrorBoundary>
+                    <AdminEmployees />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/interest-rates" element={
+                <ProtectedRoute requiredRole={"ADMIN"}>
+                  <ErrorBoundary>
+                    <AdminInterestRates />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+
+              {/* Index Route */}
+
+              {/* Catch-all for 404 Not Found */}
 
   
 

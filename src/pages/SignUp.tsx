@@ -19,7 +19,8 @@ const SignUp = () => {
     phoneNumber: '',
     username: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    country: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -28,34 +29,58 @@ const SignUp = () => {
 
   const handleDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    
+
+    // Phone number validation: not empty, positive, numbers only
+    let phone = formData.phoneNumber.trim();
+    if (!phone) {
+      toast.error('Phone number is required.');
+      return;
+    }
+    if (!/^[0-9]+$/.test(phone)) {
+      toast.error('Phone number must contain only numbers.');
+      return;
+    }
+    if (parseInt(phone, 10) <= 0) {
+      toast.error('Phone number must be a positive number.');
+      return;
+    }
+
+    // Auto-prefix for Sri Lanka
+    let phoneNumber = phone;
+    if (formData.country === 'LK' && !phone.startsWith('94')) {
+      phoneNumber = '94' + phone.replace(/^0+/, '');
+    }
+    if (formData.country === 'LK' && !phoneNumber.startsWith('+')) {
+      phoneNumber = '+' + phoneNumber;
+    }
+
     setIsLoading(true);
-    
+
     try {
       const requestBody = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
+        phoneNumber: phoneNumber,
         username: formData.username,
         password: formData.password
       };
-      
+
       const response = await apiClient.post('/api/auth/register', requestBody);
-      
+
       console.log('Registration successful:', response.data);
       toast.success('Account created successfully! Please check your email for verification.');
       setIsLoading(false);
       setStep('verification');
-      
+
     } catch (error: any) {
       console.error('Registration failed:', error);
-      
+
       // Extract error message from backend response
       let errorMessage = 'Registration failed. Please try again.';
       if (error.response?.data?.error) {
@@ -65,7 +90,7 @@ const SignUp = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
       setIsLoading(false);
     }
@@ -201,17 +226,79 @@ const SignUp = () => {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="phoneNumber" className="text-sm font-medium text-gray-900">
-                  Phone number
+                <label className="text-sm font-medium text-gray-900 block mb-1">
+                  Country & Phone number
                 </label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange('phoneNumber')}
-                  required
-                />
+                <div className="flex gap-2">
+                  <select
+                    id="country"
+                    className="block w-2/5 rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-banking-primary"
+                    value={formData.country || ''}
+                    onChange={e => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                    required
+                  >
+                    <option value="">Country</option>
+                    <option value="US">United States (+1)</option>
+                    <option value="CA">Canada (+1)</option>
+                    <option value="GB">United Kingdom (+44)</option>
+                    <option value="AU">Australia (+61)</option>
+                    <option value="IN">India (+91)</option>
+                    <option value="LK">Sri Lanka (+94)</option>
+                    <option value="NG">Nigeria (+234)</option>
+                    <option value="KE">Kenya (+254)</option>
+                    <option value="ZA">South Africa (+27)</option>
+                    <option value="PK">Pakistan (+92)</option>
+                    <option value="BD">Bangladesh (+880)</option>
+                    <option value="PH">Philippines (+63)</option>
+                    <option value="DE">Germany (+49)</option>
+                    <option value="FR">France (+33)</option>
+                    <option value="BR">Brazil (+55)</option>
+                    <option value="SG">Singapore (+65)</option>
+                    <option value="MY">Malaysia (+60)</option>
+                    <option value="GH">Ghana (+233)</option>
+                    <option value="UG">Uganda (+256)</option>
+                    <option value="RW">Rwanda (+250)</option>
+                    <option value="TZ">Tanzania (+255)</option>
+                    <option value="ZM">Zambia (+260)</option>
+                    <option value="CM">Cameroon (+237)</option>
+                    <option value="ET">Ethiopia (+251)</option>
+                    <option value="SA">Saudi Arabia (+966)</option>
+                    <option value="AE">UAE (+971)</option>
+                    <option value="TR">Turkey (+90)</option>
+                    <option value="IT">Italy (+39)</option>
+                    <option value="ES">Spain (+34)</option>
+                    <option value="JP">Japan (+81)</option>
+                    <option value="KR">South Korea (+82)</option>
+                    <option value="CN">China (+86)</option>
+                    <option value="RU">Russia (+7)</option>
+                    <option value="MX">Mexico (+52)</option>
+                    <option value="AR">Argentina (+54)</option>
+                    <option value="CO">Colombia (+57)</option>
+                    <option value="TH">Thailand (+66)</option>
+                    <option value="VN">Vietnam (+84)</option>
+                    <option value="ID">Indonesia (+62)</option>
+                    <option value="PL">Poland (+48)</option>
+                    <option value="NL">Netherlands (+31)</option>
+                    <option value="SE">Sweden (+46)</option>
+                    <option value="CH">Switzerland (+41)</option>
+                    <option value="BE">Belgium (+32)</option>
+                    <option value="AT">Austria (+43)</option>
+                    <option value="IE">Ireland (+353)</option>
+                    <option value="DK">Denmark (+45)</option>
+                    <option value="NO">Norway (+47)</option>
+                    <option value="FI">Finland (+358)</option>
+                    <option value="NZ">New Zealand (+64)</option>
+                  </select>
+                  <Input
+                    id="phoneNumber"
+                    type="tel"
+                    placeholder="e.g. 555 000-0000"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange('phoneNumber')}
+                    required
+                    className="w-3/5"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
