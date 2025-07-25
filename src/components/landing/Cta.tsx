@@ -11,7 +11,7 @@ const Cta = () => {
           <p className="text-xl text-white/90 leading-relaxed">Join millions of users who have already made the switch to smarter, faster, and more secure banking.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup"><Button size="lg" variant="secondary" className="bg-white text-banking-primary hover:bg-gray-100 px-8 py-4 text-lg">Open Your Account <ArrowRight className="ml-2 w-5 h-5" /></Button></Link>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-banking-primary px-8 py-4 text-lg">Schedule a Demo</Button>
+           
           </div>
         </div>
       </div>

@@ -1,3 +1,15 @@
+@keyframes shiny-text {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.animate-shiny-text {
+  animation: shiny-text 10s linear infinite;
+}
 html, body {
   font-family: 'Geist', system-ui, sans-serif;
 }

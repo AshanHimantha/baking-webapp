@@ -1,19 +1,69 @@
+
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { featuresData } from "@/data/landingPageData";
 
-const FeatureCard = ({ icon: Icon, title, description, color, index }) => (
-  <Card className="p-6 hover:shadow-banking-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-    <div className="space-y-4">
-      <div className={`w-12 h-12 rounded-lg bg-white shadow-md flex items-center justify-center ${color}`}>
-        <Icon className="w-6 h-6" />
+// Custom hook to detect if an element is in view
+function useInView(options) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new window.IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect(); // Only animate once
+        }
+      },
+      options
+    );
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, [options]);
+
+  return [ref, inView];
+}
+
+const FeatureCard = ({ icon: Icon, title, description, color, index, img }) => {
+  const [ref, inView] = useInView({ threshold: 0.2 });
+  return (
+    <Card
+      ref={ref}
+      className={`hover:shadow-banking-lg transition-all duration-700 
+        ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+      `}
+      style={inView ? { transitionDelay: `${index * 100}ms` } : {}}
+    >
+      <div className="space-y-2 ">
+        <div className="overflow-hidden relative">
+          <img src={img} className="object-cover w-full rounded-lg" />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 1%, rgba(255,255,255,0) 30%)",
+            }}
+          />
+        </div>
+
+        <div className="flex items-center  gap-4 p-3">
+          <div
+            className={`w-16 h-16 rounded-lg bg-white shadow-md flex items-center justify-center ${color}`}
+          >
+            <Icon className="w-10 " />
+          </div>
+          <div className="bg-white  rounded-lg ">
+            <h3 className="text-xl font-semibold text-gray-900 ">{title}</h3>
+            <p className="text-gray-600 leading-relaxed text-xs">{description}</p>
+          </div>
+        </div>
       </div>
-      <div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 leading-relaxed">{description}</p>
-      </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 const Features = () => {
   return (
@@ -24,7 +74,8 @@ const Features = () => {
             Everything you need in one place
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            From instant transfers to intelligent budgeting, discover features designed for modern banking.
+            From instant transfers to intelligent budgeting, discover features
+            designed for modern banking.
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

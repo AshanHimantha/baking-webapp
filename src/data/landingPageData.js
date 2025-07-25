@@ -7,12 +7,12 @@ export const navLinks = [
 ];
 
 export const featuresData = [
-  { icon: Zap, title: "Instant Transfers", description: "Send money instantly to anyone, anywhere. No delays, no hassles.", color: "text-banking-primary" },
-  { icon: PiggyBank, title: "Smart Savings", description: "Automated savings that work in the background to grow your wealth.", color: "text-banking-accent" },
-  { icon: Shield, title: "Bank-Level Security", description: "Your money is protected with military-grade encryption and fraud monitoring.", color: "text-banking-success" },
-  { icon: Smartphone, title: "Mobile First", description: "Full banking functionality in your pocket. Manage everything on the go.", color: "text-banking-primary" },
-  { icon: CreditCard, title: "Smart Cards", description: "Virtual and physical cards with real-time spending controls and rewards.", color: "text-banking-accent" },
-  { icon: BarChart3, title: "Spending Insights", description: "Understand your spending patterns with intelligent categorization and analytics.", color: "text-banking-success" }
+  { icon: Zap, title: "Instant Transfers", description: "Send money instantly to anyone, anywhere. No delays, no hassles.", color: "text-banking-primary", img: "/slip.jpg" },
+  { icon: PiggyBank, title: "Smart Savings", description: "Automated savings that work in the background to grow your wealth.", color: "text-banking-accent",img:"acc.png" },
+  { icon: Shield, title: "Bank-Level Security", description: "Your money is protected with military-grade encryption and fraud monitoring.", color: "text-banking-success",img:"sac.jpg" },
+  { icon: Smartphone, title: "Mobile First", description: "Full banking functionality in your pocket. Manage everything on the go.", color: "text-banking-primary",img:"mobile1st.jpg" },
+  { icon: CreditCard, title: "Smart Cards", description: "Virtual and physical cards with real-time spending controls and rewards.", color: "text-banking-accent",img: "/ocard2.png" },
+  { icon: BarChart3, title: "Spending Insights", description: "Understand your spending patterns with intelligent categorization and analytics.", color: "text-banking-success",img: "/inv.jpg" }
 ];
 
 export const securityData = [

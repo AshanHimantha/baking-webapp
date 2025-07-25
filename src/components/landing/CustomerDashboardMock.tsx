@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import AccountCarousel from "../customer/AccountCarousel";
 import {
   ArrowUpRight,
   Plus,
@@ -309,27 +310,27 @@ const DesktopDashboard = ({
           </div>
         </div>
       </header>
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <main className="flex-1 p-6 pt-4 overflow-y-auto">
+        <div className="max-w-7xl mx-auto space-y-3">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">
               Good morning, {user.firstName}! 👋
             </h1>
-            <p className="text-base text-gray-500 mt-2">
+            <p className="text-base text-gray-500 mt-1">
               Here's your financial overview for today
             </p>
           </div>
           <Card className="relative bg-gradient-to-l from-orange-700 via-yellow-600 to-orange-500 text-white shadow-lg">
-            <div className="relative z-10 p-4">
+            <div className="relative z-10 p-1">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-medium text-white">
+                  <CardTitle className="text-md -mt-5 font-medium text-white">
                     Total Balance
                   </CardTitle>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-white hover:bg-white/20 h-8 w-8 p-0"
+                    className="text-white hover:bg-white/20 h-4 w-8 p-0"
                     onClick={() => setBalanceVisible(!balanceVisible)}
                   >
                     {balanceVisible ? <Eye /> : <EyeOff />}
@@ -337,12 +338,12 @@ const DesktopDashboard = ({
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-5xl font-bold">
+                <div className="text-3xl font-bold -mt-6 mb-1">
                   {balanceVisible
                     ? `$${totalBalance.toLocaleString()}`
                     : "••••••••"}
                 </div>
-                <div className="flex items-center mt-2">
+                <div className="flex items-center mt-1">
                   <ArrowUpRight className="w-4 h-4 mr-1" />
                   {accounts.length} accounts
                 </div>
@@ -354,45 +355,6 @@ const DesktopDashboard = ({
             <CardHeader>
               <CardTitle className="text-xl">Recent Transactions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentTransactions.map((tx: any) => {
-                  const Icon = transactionTypeIcon[tx.transactionType];
-                  const isDeposit = tx.transactionType === "DEPOSIT";
-                  return (
-                    <div
-                      key={tx.id}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div
-                          className={`${
-                            isDeposit
-                              ? "bg-green-100 text-green-700"
-                              : "bg-blue-100 text-blue-700"
-                          } p-3 rounded-full`}
-                        >
-                          <Icon />
-                        </div>
-                        <div>
-                          <p className="font-medium">{tx.description}</p>
-                          <p className="text-sm text-gray-500">
-                            {new Date(tx.transactionDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      <p
-                        className={`font-semibold ${
-                          isDeposit ? "text-green-600" : ""
-                        }`}
-                      >
-                        {isDeposit ? "+" : "-"}${tx.amount.toFixed(2)}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
           </Card>
         </div>
       </main>
@@ -461,43 +423,13 @@ const CustomerDashboardPage = () => {
     `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase();
   const isAdminOrEmployee = userProfile.roles.includes("ADMIN");
 
-  const AccountCarouselContent = useMemo(
-    () => (
-      <Card className="shadow-lg overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-lg">Your Accounts</CardTitle>
-          <Button variant="ghost" size="sm">
-            <Plus className="w-4 h-4 mr-1" />
-            Add
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-            {accounts.map((account) => (
-              <div
-                key={account.accountNumber}
-                className="flex-none w-64 h-40 rounded-xl shadow-md p-4 flex flex-col justify-between text-white"
-                style={{ background: account.backgroundImage }}
-              >
-                <div className="flex justify-between items-start">
-                  <CreditCard className={account.iconColor} />
-                  <span className="font-semibold">{account.accountType}</span>
-                </div>
-                <div>
-                  <p className="text-lg font-bold">
-                    {balanceVisible
-                      ? `$${account.balance.toLocaleString()}`
-                      : "••••••••"}
-                  </p>
-                  <p className="text-sm opacity-80">{account.accountNumber}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    ),
-    [balanceVisible, accounts]
+  // Use the real AccountCarousel for creative cards
+  const AccountCarouselContent = (
+    <div className="shadow-lg overflow-hidden rounded-lg bg-white">
+      <div className="p-4 pb-0">
+        <AccountCarousel accounts={accounts} />
+      </div>
+    </div>
   );
 
   const dashboardProps = {
