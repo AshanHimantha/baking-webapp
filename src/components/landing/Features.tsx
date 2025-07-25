@@ -17,8 +17,8 @@ const FeatureCard = ({ icon: Icon, title, description, color, index }) => (
 
 const Features = () => {
   return (
-    <section id="features" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" className=" bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:-mt-32">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
             Everything you need in one place

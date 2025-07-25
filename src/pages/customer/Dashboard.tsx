@@ -70,20 +70,6 @@ const CustomerDashboard = () => {
   }, []);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // Handler for claiming welcome gift
   const handleClaimGift = async () => {
     setClaimingGift(true);
@@ -115,39 +101,6 @@ const CustomerDashboard = () => {
       setClaimingGift(false);
     }
   };
-
-  // const quickActions = [
-  //   {
-  //     name: "Transfer",
-  //     icon: ArrowLeftRight,
-  //     color: "bg-banking-primary",
-  //     href: "/customer/transfer",
-  //   },
-  //   {
-  //     name: "Pay Bills",
-  //     icon: Receipt,
-  //     color: "bg-banking-success",
-  //     href: "/customer/transfer",
-  //   },
-  //   {
-  //     name: "Add Money",
-  //     icon: Plus,
-  //     color: "bg-purple-500",
-  //     href: "/customer/cards",
-  //   },
-  //   {
-  //     name: "Cards",
-  //     icon: CreditCard,
-  //     color: "bg-banking-warning",
-  //     href: "/customer/cards",
-  //   },
-  // ];
-
-
-
-
-
- 
 
 
 
@@ -327,41 +280,6 @@ const CustomerDashboard = () => {
             onAccountAdded={fetchDashboard}
           />
 
-          {/* Quick Actions */}
-          {/* <Card className="shadow-banking">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">
-                Quick Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                {quickActions.map((action) => {
-                  const Icon = action.icon;
-                  return (
-                    <Button
-                      key={action.name}
-                      variant="outline"
-                      className="h-auto p-4 sm:p-6 flex flex-col items-center justify-center space-y-2 sm:space-y-3 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 border-border"
-                      asChild
-                    >
-                      <a href={action.href}>
-                        <div
-                          className={`${action.color} p-3 sm:p-4 rounded-full text-white`}
-                        >
-                          <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </div>
-                        <span className="text-xs sm:text-sm font-medium text-center leading-tight">
-                          {action.name}
-                        </span>
-                      </a>
-                    </Button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card> */}
-
           {/* Recent Transactions */}
           <Card className="shadow-banking">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -444,20 +362,6 @@ const CustomerDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* <Card className="shadow-banking">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Spending Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48 sm:h-64 lg:h-80 bg-gradient-to-br from-muted/50 to-muted rounded-lg flex items-center justify-center">
-                <div className="text-center px-4">
-                  <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-3 sm:mb-4" />
-                  <p className="text-base sm:text-lg text-muted-foreground mb-2">Spending chart visualization</p>
-                  <p className="text-sm text-muted-foreground/70">An interactive chart will be displayed here.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
         </div>
       </div>
     </CustomerLayout>

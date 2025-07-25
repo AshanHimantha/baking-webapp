@@ -36,16 +36,15 @@ export const ContainerScroll = ({
 
   return (
     <div
-      className="h-[60rem] md:h-[80rem] flex items-center justify-center relative p-2 md:p-20"
+      className="flex items-center justify-center relative p-2 md:p-20 xl:p-60"
       ref={containerRef}
     >
       <div
-        className="py-10 md:py-40 w-full relative"
+        className=" w-full relative"
         style={{
           perspective: "1000px",
         }}
       >
-        <Header translate={translate} titleComponent={titleComponent} />
         <Card rotate={rotate} translate={translate} scale={scale}>
           {children}
         </Card>
@@ -54,18 +53,7 @@ export const ContainerScroll = ({
   );
 };
 
-export const Header = ({ translate, titleComponent }: any) => {
-  return (
-    <motion.div
-      style={{
-        translateY: translate,
-      }}
-      className="div max-w-5xl mx-auto text-center"
-    >
-      {titleComponent}
-    </motion.div>
-  );
-};
+
 
 export const Card = ({
   rotate,
@@ -79,7 +67,6 @@ export const Card = ({
 }) => {
   return (
     <motion.div
-
       style={{
         rotateX: rotate,
         scale,
@@ -87,6 +74,12 @@ export const Card = ({
           "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 14px 10px #00000026, 0 19px 10px #0000000a, 0 33px 15px #00000003",
       }}
       className="max-w-5xl  mx-auto h-[30rem] md:h-[40rem] w-full border-4 border-[#6C6C6C] p-2 md:p-6 bg-[#222222] rounded-[30px] "
+      transition={{
+        type: "spring",
+        stiffness: 80,
+        damping: 18,
+        mass: 0.7,
+      }}
     >
       <div className=" h-full w-full  overflow-hidden rounded-2xl md:rounded-2xl  ">
         {children}
