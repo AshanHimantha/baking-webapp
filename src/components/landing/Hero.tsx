@@ -25,7 +25,7 @@ const Hero = () => {
         </div>
 
         <div className="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center h-full w-full overflow-hidden  ">
-          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12  md:translate-y-[-38%] translate-y-[-30%] no-translate-short ">
+          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12  md:translate-y-[-38%] translate-y-[-25%] no-translate-short ">
             <div className="space-y-4 flex flex-col justify-center items-center w-full">
               <div className=" text-center w-full ">
                 <motion.span
@@ -89,7 +89,7 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="w-full relative h-auto  lg:translate-y-[-50%] translate-y-[-32%] -mb-[90%] md:-mb-[40%] pointer-events-none ">
+      <div className="w-full relative h-auto  lg:translate-y-[-50%] translate-y-[-35%] -mb-[90%] md:-mb-[40%] pointer-events-none ">
         <motion.div
           className="overflow-hidden lg:flex items-center justify-center  w-full hidden "
           initial={{ opacity: 0, y: 40 }}
