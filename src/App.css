@@ -1,3 +1,10 @@
+@media (max-height: 600px) {
+  .no-translate-short {
+    --tw-translate-y: 0 !important;
+    transform: none !important;
+    margin-top: 50px;
+  }
+}
 @keyframes shiny-text {
   0% {
     background-position: -200px 0;

@@ -25,9 +25,9 @@ const Hero = () => {
         </div>
 
         <div className="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center h-full w-full overflow-hidden  ">
-          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12  md:translate-y-[-40%] translate-y-[-35%]  ">
+          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12  md:translate-y-[-38%] translate-y-[-30%] no-translate-short ">
             <div className="space-y-4 flex flex-col justify-center items-center w-full">
-              <div className="space-y-2 text-center w-full ">
+              <div className=" text-center w-full ">
                 <motion.span
                   className="text-xs border border-gray-300 px-3 py-1 rounded-full font-medium overflow-hidden inline-block "
                   initial={{ opacity: 0, y: 30 }}
@@ -89,7 +89,7 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="w-full relative h-auto  lg:translate-y-[-50%] translate-y-[-40%] -mb-[90%] md:-mb-[40%] pointer-events-none ">
+      <div className="w-full relative h-auto  lg:translate-y-[-50%] translate-y-[-32%] -mb-[90%] md:-mb-[40%] pointer-events-none ">
         <motion.div
           className="overflow-hidden lg:flex items-center justify-center  w-full hidden "
           initial={{ opacity: 0, y: 40 }}
@@ -103,7 +103,7 @@ const Hero = () => {
         </motion.div>
 
         <motion.div
-          className=" lg:hidden items-center justify-center  w-full flex p-4 mb-10 overflow-hidden"
+          className=" lg:hidden items-center justify-center  w-full flex p-10 mb-10 overflow-hidden"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
