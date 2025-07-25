@@ -40,15 +40,49 @@ const accountTypeColor = {
 
 const CustomerDashboard = () => {
   const [balanceVisible, setBalanceVisible] = useState(true);
-  const [accounts, setAccounts] = useState([]);
-  const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const userProfile = useUserStore((state) => state.userProfile);
-  const fetchUserProfile = useUserStore((state) => state.fetchUserProfile);
-
+  const fetchUserProfile = useUserStore((state) => state.fetchUserProfile); 
   const proDetails = useUserStore((state) => state.isLoading);
   const [claimingGift, setClaimingGift] = useState(false);
   const confettiRef = useRef(null);
+  
+
+  const [accounts, setAccounts] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+
+ const fetchDashboard = async () => {
+    try {
+      const res = await apiClient.get("/api/dashboard");
+      setAccounts(res.data.accounts || []);
+      setRecentTransactions(res.data.recentTransactions || []);
+    } catch (e) {
+      console.error("Failed to fetch dashboard data:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchDashboard();
+   
+  }, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // Handler for claiming welcome gift
   const handleClaimGift = async () => {
@@ -56,9 +90,7 @@ const CustomerDashboard = () => {
     try {
       const res = await apiClient.post("/api/gifts/welcome/claim");
       toast.success(res.data.message || "Gift claimed!");
-      // Debug: log confettiRef
       setTimeout(() => {
-        // Fire confetti after a short delay to ensure canvas is mounted
         if (confettiRef.current && typeof confettiRef.current.fire === "function") {
           confettiRef.current.fire({
             particleCount: 120,
@@ -111,23 +143,13 @@ const CustomerDashboard = () => {
   //   },
   // ];
 
-  // Make fetchDashboard available for callbacks
-  const fetchDashboard = async () => {
-    try {
-      const res = await apiClient.get("/api/dashboard");
-      setAccounts(res.data.accounts || []);
-      setRecentTransactions(res.data.recentTransactions || []);
-    } catch (e) {
-      console.error("Failed to fetch dashboard data:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchDashboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+
+
+ 
+
+
 
   const totalBalance = accounts.reduce(
     (sum, acc) => sum + (acc.balance || 0),
