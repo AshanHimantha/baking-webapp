@@ -25,11 +25,11 @@ const Hero = () => {
         </div>
 
         <div className="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center h-full w-full overflow-hidden  ">
-          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12  translate-y-[-40%]  ">
+          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12  md:translate-y-[-40%] translate-y-[-35%]  ">
             <div className="space-y-4 flex flex-col justify-center items-center w-full">
               <div className="space-y-2 text-center w-full ">
                 <motion.span
-                  className="text-xs border border-gray-300 px-3 py-1 rounded-full font-medium overflow-hidden inline-block mt-6"
+                  className="text-xs border border-gray-300 px-3 py-1 rounded-full font-medium overflow-hidden inline-block "
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 5, ease: "easeOut" }}
