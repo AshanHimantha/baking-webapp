@@ -61,11 +61,11 @@ export default function Iphone15Pro({
    
       
         <foreignObject x="21.25" y="19.25" width="389.5" height="843.5">
-         <div className="w-full h-full bg-white rounded-[50px] overflow-hidden z-[9999]">
         
-            <CustomerDashboardMock />
+        
+        <img src="/dash.png" alt="iphone 15 " className="rounded-[50px]" srcset="" />
     
-         </div>
+        
         </foreignObject>
       
       <path

@@ -9,7 +9,7 @@ const Header = () => {
 
   return (
     <div className="w-full flex justify-center items-center ">
-    <nav className=" fixed top-0 left-0 right-0 z-50 m-0 rounded-none w-full mt-8">
+    <nav className=" fixed top-0 left-0 right-0 z-50 m-0 rounded-none w-full lg:mt-8 mt-5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 lg:w-7/12 w-11/12 border border-gray-200 bg-white/90  backdrop-blur-sm rounded-full  shadow-sm">
         <div className="flex justify-between items-center h-16">
 

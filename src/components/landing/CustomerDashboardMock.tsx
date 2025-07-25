@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   ArrowUpRight,
   Plus,
@@ -15,29 +15,6 @@ import {
   LogOut,
   Settings,
 } from "lucide-react";
-
-// --- 1. UTILITY HOOK for Responsive Design (IMPROVED) ---
-const useMediaQuery = (query: string) => {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    // Ensure this runs only on the client
-    if (typeof window === "undefined") return;
-
-    const media = window.matchMedia(query);
-    // Set the initial state
-    setMatches(media.matches);
-
-    // Create a listener for changes
-    const listener = () => setMatches(media.matches);
-    media.addEventListener("change", listener);
-
-    // Cleanup the listener on component unmount
-    return () => media.removeEventListener("change", listener);
-  }, [query]); // Effect only re-runs if the query string changes
-
-  return matches;
-};
 
 // --- MOCK UI COMPONENTS (Shared by both Mobile and Desktop) ---
 const Card = ({
@@ -224,7 +201,7 @@ const transactionTypeIcon = {
   INTEREST_PAYOUT: TrendingUp,
 };
 
-// --- 2. DESKTOP-ONLY COMPONENT (Unchanged) ---
+// --- DESKTOP-ONLY COMPONENT ---
 const DesktopDashboard = ({
   user,
   accounts,
@@ -423,197 +400,7 @@ const DesktopDashboard = ({
   </div>
 );
 
-// --- 3. MOBILE-ONLY COMPONENT (FIXED) ---
-const MobileDashboard = ({
-  user,
-  accounts,
-  totalBalance,
-  balanceVisible,
-  setBalanceVisible,
-  navigation,
-  isAdminOrEmployee,
-  recentTransactions,
-  AccountCarouselContent,
-  displayUserInitials,
-  displayUserName,
-}: any) => (
-  
-
-
-  <div className="flex flex-col h-screen w-full bg-gray-black font-sans text-gray-800">
-    <header
-      className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200 flex-shrink-0"
-
-     
-    >
-      <div className="flex items-center justify-between h-16 px-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold text-gray-900 truncate">
-            Dashboard
-          </h1>
-        </div>
-        <div className="flex items-center space-x-2 ml-2">
-          <Button variant="ghost" size="sm" className="relative p-2">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-                <Avatar>
-                  {user.hasAvatar ? (
-                    <AvatarImage src={user.avatarUrl} />
-                  ) : (
-                    <AvatarFallback>{displayUserInitials}</AvatarFallback>
-                  )}
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <div className="p-2">
-                <p className="font-medium text-sm">{displayUserName}</p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              {isAdminOrEmployee && (
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Admin Panel
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </header>
-
-    <main className="flex-1 p-4 overflow-y-auto pb-20">
-      {/* The pb-20 (5rem) is important. It ensures the content at the bottom of the page
-          isn't hidden behind the fixed footer, which has a height of h-16 (4rem). */}
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Good morning, {user.firstName}!
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Here's your overview.</p>
-        </div>
-        <Card className="relative bg-gradient-to-l from-orange-700 via-yellow-600 to-orange-500 text-white shadow-lg">
-          <div className="relative z-10 p-4">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-medium text-white">
-                  Total Balance
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20 h-8 w-8 p-0"
-                  onClick={() => setBalanceVisible(!balanceVisible)}
-                >
-                  {balanceVisible ? <Eye size={16} /> : <EyeOff size={16} />}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {balanceVisible
-                  ? `$${totalBalance.toLocaleString()}`
-                  : "••••••••"}
-              </div>
-              <div className="flex items-center text-sm mt-1">
-                <ArrowUpRight className="w-4 h-4 mr-1" />
-                {accounts.length} accounts
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-        {AccountCarouselContent}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentTransactions.map((tx: any) => {
-                const Icon = transactionTypeIcon[tx.transactionType];
-                const isDeposit = tx.transactionType === "DEPOSIT";
-                return (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <div
-                        className={`${
-                          isDeposit
-                            ? "bg-green-100 text-green-700"
-                            : "bg-blue-100 text-blue-700"
-                        } p-2 rounded-full`}
-                      >
-                        <Icon size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {tx.description}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(tx.transactionDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <p
-                      className={`font-semibold text-sm ${
-                        isDeposit ? "text-green-600" : ""
-                      }`}
-                    >
-                      {isDeposit ? "+" : "-"}${tx.amount.toFixed(2)}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
-
-    <footer
-      className="mb-14 w-full left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-10"
-
-     
-    >
-      <div className="flex justify-around items-center h-16 px-2">
-        {navigation.map((item: any) => {
-          const Icon = item.icon;
-          const isActive = item.name === "Dashboard";
-          return (
-            <div
-              key={item.name}
-              className={`flex flex-col items-center justify-center p-1 rounded-lg transition-colors cursor-pointer ${
-                isActive ? "text-blue-600" : "text-gray-600"
-              }`}
-            >
-              <Icon className="w-5 h-5 mb-1" />
-              <span className="text-xs font-medium">{item.name}</span>
-            </div>
-          );
-        })}
-      </div>
-    </footer>
-  </div>
- 
-);
-
-// --- 4. PARENT CONTAINER COMPONENT (Unchanged) ---
+// --- PARENT CONTAINER COMPONENT ---
 const CustomerDashboardPage = () => {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [userProfile] = useState({
@@ -674,7 +461,7 @@ const CustomerDashboardPage = () => {
     `${userProfile.firstName[0]}${userProfile.lastName[0]}`.toUpperCase();
   const isAdminOrEmployee = userProfile.roles.includes("ADMIN");
 
-  const AccountCarouselContent = React.useMemo(
+  const AccountCarouselContent = useMemo(
     () => (
       <Card className="shadow-lg overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -713,8 +500,6 @@ const CustomerDashboardPage = () => {
     [balanceVisible, accounts]
   );
 
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-
   const dashboardProps = {
     user: userProfile,
     accounts,
@@ -729,11 +514,7 @@ const CustomerDashboardPage = () => {
     displayUserName,
   };
 
-  return isDesktop ? (
-    <DesktopDashboard {...dashboardProps} />
-  ) : (
-    <MobileDashboard {...dashboardProps} />
-  );
+  return <DesktopDashboard {...dashboardProps} />;
 };
 
 export default CustomerDashboardPage;

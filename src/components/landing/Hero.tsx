@@ -3,23 +3,24 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, TrendingUp } from "lucide-react";
 import { heroStats } from "@/data/landingPageData";
 import { ContainerScroll } from "../ui/container-scroll-animation";
-import Iphone15Pro from "../magicui/iphone-15-pro";
+
 import { AnimatedShinyText } from "../magicui/animated-shiny-text";
 import { ShimmerButton } from "../magicui/shimmer-button";
 import CustomerDashboardMock from "./CustomerDashboardMock";
+import Iphone15Pro from "../magicui/iphone-15-pro";
 
 const Hero = () => {
   return (
     <>
-      <div className="relative lg:h-screen h-svh flex items-center justify-center overflow-hidden ">
+      <div className="relative lg:h-screen h-svh flex items-center  overflow-hidden ">
         <div className="absolute inset-0  m-5 mt-0 rounded-xl   border-t-0 rounded-t-none overflow-hidden bg-gradient-to-b from-transparent to-white ">
           <div className="h-full w-full absolute inset-0 overflow-hidden ">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,_#fff_40%,_#FC9515_200%,_#fdba74_100%)]  z-0 animate-pulse-slow scale-x-[150%] lg:-mt-32 " />
           </div>
         </div>
 
-        <div className="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center h-full w-full overflow-hidden lg:-mt-52 -mt-44 ">
-          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12 ">
+        <div className="relative mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center h-full w-full overflow-hidden  ">
+          <div className="items-center justify-center w-full sm:w-8/12 md:w-7/12 lg:w-5/12 translate-y-[-40%]   ">
             <div className="space-y-4 flex flex-col justify-center items-center w-full">
               <div className="space-y-2 text-center w-full ">
                 <span className="text-xs border border-gray-300 px-3 py-1 rounded-full text-gray-700 font-medium">
@@ -58,17 +59,15 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="w-full relative h-auto">
-        <div className="overflow-hidden md:flex items-center justify-center md:-mt-[39%] 2xl:-mt-[36%]   w-full hidden">
+      <div className="w-full relative h-auto  lg:translate-y-[-50%] translate-y-[-40%] ">
+        <div className="overflow-hidden lg:flex items-center justify-center  w-full hidden">
           <ContainerScroll>
-  
             <CustomerDashboardMock />
           </ContainerScroll>
         </div>
 
-        <div className="overflow-hidden md:hidden items-center justify-center -mt-[70%]  w-full flex p-4 mb-10">
-
-          <Iphone15Pro />
+        <div className=" lg:hidden items-center justify-center  w-full flex p-4 mb-10 overflow-hidden">
+          <Iphone15Pro/>
         </div>
       </div>
     </>
