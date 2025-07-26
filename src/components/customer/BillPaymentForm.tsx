@@ -166,17 +166,7 @@ const BillPaymentForm: React.FC<BillPaymentFormProps> = ({
             Bill Payment Details
           </div>
           {/* Moved recurring toggle here */}
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="recurring-toggle-bill" className="text-sm font-medium">
-              Recurring
-            </Label>
-            <Switch
-                id="recurring-toggle-bill"
-                checked={isRecurring}
-                onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
-                disabled={!biller} // Disable if no biller is selected
-            />
-          </div>
+        
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -244,6 +234,18 @@ const BillPaymentForm: React.FC<BillPaymentFormProps> = ({
             </Accordion>
           )}
         </div>
+
+  <div className="flex items-center justify-between space-x-2 mt-4 mb-2">
+            <Label htmlFor="recurring-toggle-bill" className="text-sm font-medium">
+              Recurring
+            </Label>
+            <Switch
+                id="recurring-toggle-bill"
+                checked={isRecurring}
+                onCheckedChange={(checked) => setIsRecurring(checked as boolean)}
+                disabled={!biller} // Disable if no biller is selected
+            />
+          </div>
 
         {/* Amount Input */}
         <div>

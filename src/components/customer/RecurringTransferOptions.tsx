@@ -26,7 +26,7 @@ const RecurringTransferOptions: React.FC<RecurringTransferOptionsProps> = ({
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
-        <Label htmlFor="frequency">Frequency</Label>
+        <Label htmlFor="frequency" className="text-gray-600">Frequency</Label>
         <Select value={frequency} onValueChange={onFrequencyChange}>
           <SelectTrigger>
             <SelectValue />
@@ -41,7 +41,7 @@ const RecurringTransferOptions: React.FC<RecurringTransferOptionsProps> = ({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="startDate">Start Date</Label>
+        <Label htmlFor="startDate" className="text-gray-600">Start Date</Label>
         <Input
           id="startDate"
           type="date"

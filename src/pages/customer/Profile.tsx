@@ -31,13 +31,18 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { ProfileAPI, ProfileUpdateDTO, ProfileUtils, UserProfileData } from "@/lib/profileApi";
+ import { useUserStore } from "@/store/userStore";
+
 
 const CustomerProfile = () => {
   const navigate = useNavigate();
   const { logout, getUser, isAuthenticated } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+  // Correct usage: get fetchUserProfile from useUserStore hook
+  // import useUserStore at the top if not already
+ 
+  const { fetchUserProfile } = useUserStore();
   // Get user data directly from auth store
   const user = getUser();
   
@@ -55,6 +60,21 @@ const CustomerProfile = () => {
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+
+  // Handler to refresh avatar after upload
+  const handleAvatarChange = async (newAvatarUrl?: string) => {
+    // If the AvatarUpload provides a new URL, use it, otherwise reload from API
+    if (newAvatarUrl) {
+      setAvatarUrl(ProfileUtils.getFullAvatarUrl(newAvatarUrl));
+      fetchUserProfile();
+
+    } else {
+      await loadProfilePicture();
+    }
+    // Optionally, reload full profile to get updated info
+    await loadFullProfile();
+  };
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -243,13 +263,13 @@ const CustomerProfile = () => {
           </div>
           <div className="flex space-x-2">
 
-            <Button 
+            {/* <Button 
               onClick={() => setIsEditing(!isEditing)}
               className="w-full sm:w-auto"
             >
               <Edit className="w-4 h-4 mr-2" />
               {isEditing ? 'Cancel' : 'Edit Profile'}
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -268,7 +288,7 @@ const CustomerProfile = () => {
                 <div className="flex items-center space-x-4 mb-6">
                   <AvatarUpload
                     avatarUrl={avatarUrl}
-                    onAvatarChange={setAvatarUrl}
+                    onAvatarChange={handleAvatarChange}
                     userInitials={getInitials()}
                     size="md"
                   />

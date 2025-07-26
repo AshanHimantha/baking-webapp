@@ -74,8 +74,8 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
   };
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor="recipient">Recipient</Label>
+    <div className="space-y-2 ">
+      <Label htmlFor="recipient" className="text-gray-600">Recipient</Label>
       {!recipient ? (
         <>
           <div className="flex gap-2 mb-2">
@@ -84,7 +84,7 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
               variant={searchType === "email" ? "default" : "outline"}
               size="sm"
               onClick={() => setSearchType("email")}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 h-7 "
             >
               <AtSign className="w-4 h-4" /> Email
             </Button>
@@ -93,7 +93,7 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
               variant={searchType === "username" ? "default" : "outline"}
               size="sm"
               onClick={() => setSearchType("username")}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 h-7"
             >
               <User className="w-4 h-4" /> Username
             </Button>
@@ -102,7 +102,7 @@ const RecipientSearchAndDisplay: React.FC<RecipientSearchAndDisplayProps> = ({
               variant={searchType === "accountno" ? "default" : "outline"}
               size="sm"
               onClick={() => setSearchType("accountno")}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 h-7  "
             >
               <Hash className="w-4 h-4" /> Account No
             </Button>

@@ -87,7 +87,7 @@ export function AddCardModal({ isOpen, onOpenChange, onSuccess }: AddCardModalPr
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className=" items-center gap-4 ">
-              <Label htmlFor="accountNumber" className="text-right">
+              <Label htmlFor="accountNumber" className="text-right ">
                 From Account
               </Label>
               {/* The new select component for choosing an account */}

@@ -34,6 +34,59 @@ const KYC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Dummy data for KYC form
+  const dummyData = {
+    fullName: 'John Doe',
+    dateOfBirth: '1990-01-01',
+    nationality: 'American',
+    address: '123 Main Street, Springfield',
+    city: 'Springfield',
+    postalCode: '12345',
+    country: 'USA',
+    idNumber: 'A1234567',
+    idType: 'passport',
+  };
+
+  // Helper to fetch image as File from public folder
+  const fetchImageAsFile = async (url: string, fileName: string): Promise<File> => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new File([blob], fileName, { type: blob.type });
+  };
+
+
+  // Fill all details with dummy data and set images (with preview)
+  const fillWithDummyData = async () => {
+    setPersonalDetails(dummyData);
+    // Use images from public folder
+    const frontFile = await fetchImageAsFile('/front.jpg', 'front.jpg');
+    const backFile = await fetchImageAsFile('/back.jpg', 'back.jpg');
+
+    // Clear previews first to force re-render
+    setIdFrontPreview(null);
+    setIdBackPreview(null);
+
+    // Helper to read file as data URL and return promise
+    const readAsDataURL = (file: File) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    };
+
+    setIdFront(frontFile);
+    setIdBack(backFile);
+
+    const [frontPreview, backPreview] = await Promise.all([
+      readAsDataURL(frontFile),
+      readAsDataURL(backFile)
+    ]);
+    setIdFrontPreview(frontPreview);
+    setIdBackPreview(backPreview);
+  };
+
+
   // Check for existing KYC documents on component mount
   useEffect(() => {
     const checkKycStatus = async () => {
@@ -430,6 +483,17 @@ const KYC = () => {
                       title="ID Back"
                       description="Upload back side of your ID"
                     />
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mb-2 mr-2"
+                      onClick={fillWithDummyData}
+                    >
+                      Add Dummy Data
+                    </Button>
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

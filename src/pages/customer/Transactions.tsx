@@ -130,7 +130,7 @@ const CustomerTransactions = () => {
         const isGiftReceived = transaction.toAccountNumber === currentAccount;
         type = isGiftReceived ? "income" : "expense";
         merchantName = isGiftReceived
-          ? `Gift from: ${transaction.fromAccountNumber || "Unknown Account"}`
+          ? `Gift from: ${transaction.fromAccountNumber || "ORBIN Bank"}`
           : `Gift to: ${transaction.toAccountNumber || "Unknown Account"}`;
         IconComponent = GiftIcon;
         colorClass = isGiftReceived ? "bg-pink-500" : "bg-pink-400";

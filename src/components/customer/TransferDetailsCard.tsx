@@ -55,16 +55,9 @@ const TransferDetailsCard: React.FC<TransferDetailsCardProps> = ({
             <Send className="w-5 h-5 mr-2" />
             Transfer Details
           </div>
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="recurring-toggle" className="text-sm font-medium">
-              Recurring
-            </Label>
-            <Switch id="recurring-toggle" checked={isRecurring} onCheckedChange={setIsRecurring} />
-          </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-
+      <CardContent className="space-y-4 ">
         <TransferFromAccountSelect
           label="From Account"
           accounts={accounts}
@@ -72,12 +65,22 @@ const TransferDetailsCard: React.FC<TransferDetailsCardProps> = ({
           onAccountChange={setFromAccount}
         />
 
-
         <RecipientSearchAndDisplay
           recipient={recipient}
           onRecipientSelected={setRecipient}
           onRecipientCleared={() => setRecipient(null)}
         />
+
+        <div className="flex justify-between items-center space-x-2">
+          <Label htmlFor="recurring-toggle" className="text-sm font-medium">
+            Recurring
+          </Label>
+          <Switch
+            id="recurring-toggle"
+            checked={isRecurring}
+            onCheckedChange={setIsRecurring}
+          />
+        </div>
 
         <TransferAmountInput
           amount={amount}
@@ -95,7 +98,7 @@ const TransferDetailsCard: React.FC<TransferDetailsCardProps> = ({
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="message">Message (Optional)</Label>
+          <Label htmlFor="message" className="text-gray-600">Message (Optional)</Label>
           <Textarea
             id="message"
             placeholder="Add a note for the recipient..."

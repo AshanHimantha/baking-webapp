@@ -19,7 +19,7 @@ const TransferAmountInput: React.FC<TransferAmountInputProps> = ({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="amount">Amount</Label>
+        <Label htmlFor="amount" className="text-gray-600">Amount</Label>
         <div className="relative">
           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
