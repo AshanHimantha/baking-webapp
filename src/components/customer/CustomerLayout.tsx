@@ -18,7 +18,7 @@ import {
   Settings,
   Loader2 // Import Loader2 for loading spinner
 } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
+// import { useTheme } from "@/components/theme-provider";
 import { useAuthStore } from "@/store/authStore";
 import {
   DropdownMenu,
@@ -38,7 +38,7 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme();
 
   // Use useAuthStore for authentication actions (logout, initial role check for ProtectedRoute)
   const { logout } = useAuthStore();
@@ -135,10 +135,10 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed  inset-y-0 left-0 z-50 w-64  border-r  bg-white dark:bg-slate-950 border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
+      <div className={`fixed  inset-y-0 left-0 z-50 w-64  border-r  bg-white border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex items-center justify-between  h-16 px-4 lg:px-6 border-b border-border flex-shrink-0 dark:bg-slate-950 ">
+        <div className="flex items-center justify-between  h-16 px-4 lg:px-6 border-b border-border flex-shrink-0 ">
           <div className="flex items-center ">
             <img src="/orbinw.png" alt="Logo" className="h-10   " />
           </div>
@@ -222,20 +222,6 @@ const CustomerLayout = ({ children }: CustomerLayoutProps) => {
             </div>
 
             <div className="flex items-center space-x-2 lg:space-x-4">
-              {/* Theme toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2"
-                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              >
-                {theme === "light" ? (
-                  <Moon className="w-4 h-4 lg:w-5 lg:h-5" />
-                ) : (
-                  <Sun className="w-4  lg:w-5 h-5" />
-                )}
-              </Button>
-
               {/* Notifications */}
               <Button variant="ghost" size="sm" className="relative p-2">
                 <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
