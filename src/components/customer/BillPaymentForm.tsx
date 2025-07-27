@@ -188,7 +188,9 @@ const BillPaymentForm: React.FC<BillPaymentFormProps> = ({
           {biller ? (
             <div className="flex items-center justify-between p-3 border border-banking-primary rounded-md bg-banking-primary/5">
         <div className='flex items-center gap-3'>
-          {/* Logo removed as per request */}
+        {biller.logoUrl && (
+            <img src={import.meta.env.VITE_API_BASE_URL + biller.logoUrl} alt={biller.billerName} className="h-6 w-6 rounded-full object-contain" />
+        )}
               <span className="font-medium text-banking-primary">{biller.billerName} ({biller.category})</span>
         </div>
               <Button variant="ghost" size="sm" onClick={() => setBiller(null)}>Change</Button>
@@ -218,7 +220,9 @@ const BillPaymentForm: React.FC<BillPaymentFormProps> = ({
                               setExpandedCategory(undefined);
                             }}
                           >
-                            {/* Logo removed as per request */}
+                            {billerItem.logoUrl && (
+                              <img src={import.meta.env.VITE_API_BASE_URL + billerItem.logoUrl} alt={billerItem.billerName} className="h-6 w-6 rounded-full object-contain" />
+                            )}
                             <span className="font-medium">{billerItem.billerName}</span>
                           </div>
                         ))}
